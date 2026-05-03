@@ -9,7 +9,8 @@ import { CreateRoutineDialog } from './CreateRoutineDialog'
 import { RoutineCard } from './RoutineCard'
 import { QrScannerDialog } from './QrScannerDialog'
 import { HelpVideoButton } from '../../../components/ui/HelpVideo/HelpVideoButton'
-import { addRoutineDay } from '../../../services/routines.service'
+import { addRoutineDay, duplicateRoutine } from '../../../services/routines.service'
+import { useAuthStore } from '../../../stores/authStore'
 import type { RoutineWithDays } from '../../../types/routine'
 import './RoutinesList.css'
 
@@ -24,6 +25,7 @@ type RoutinesListProps = {
 }
 
 type PendingDelete = { id: string; name: string } | null
+type PendingClone = { id: string; proposedName: string } | null
 
 export function RoutinesList({
   routines,
@@ -34,8 +36,12 @@ export function RoutinesList({
   onToggleActive,
   onRefresh,
 }: RoutinesListProps) {
+  const userId = useAuthStore((s) => s.user?.id)
   const [createOpen, setCreateOpen] = useState(false)
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null)
+  const [pendingClone, setPendingClone] = useState<PendingClone>(null)
+  const [cloningName, setCloningName] = useState('')
+  const [cloning, setCloning] = useState(false)
   const [scannerOpen, setScannerOpen] = useState(false)
 
   async function handleCreate(name: string, weekdays: number[]) {
@@ -59,6 +65,28 @@ export function RoutinesList({
     if (success) showToast(`"${pendingDelete.name}" eliminada`, 'success')
     else showToast('Error al eliminar', 'error')
     setPendingDelete(null)
+  }
+
+  function handleRequestClone(routine: RoutineWithDays) {
+    const proposed = `${routine.name} (copia)`
+    setPendingClone({ id: routine.id, proposedName: proposed })
+    setCloningName(proposed)
+  }
+
+  async function handleConfirmClone() {
+    if (!pendingClone || !userId || cloning) return
+    const finalName = cloningName.trim() || pendingClone.proposedName
+    setCloning(true)
+    const { error } = await duplicateRoutine(userId, pendingClone.id, finalName)
+    setCloning(false)
+    if (error) {
+      showToast('Error al duplicar rutina', 'error')
+    } else {
+      showToast(`"${finalName}" creada`, 'success')
+      await onRefresh()
+    }
+    setPendingClone(null)
+    setCloningName('')
   }
 
   if (loading) {
@@ -108,6 +136,7 @@ export function RoutinesList({
             onSelect={() => onSelectRoutine(routine)}
             onDelete={() => setPendingDelete({ id: routine.id, name: routine.name })}
             onToggle={() => onToggleActive(routine.id, !routine.is_active)}
+            onDuplicate={() => handleRequestClone(routine)}
           />
         ))}
       </div>
@@ -127,6 +156,44 @@ export function RoutinesList({
         onConfirm={handleConfirmDelete}
         onCancel={() => setPendingDelete(null)}
       />
+
+      {!!pendingClone && (
+        <div className="clone-dialog-overlay" role="dialog" aria-modal="true" aria-label="Duplicar rutina">
+          <div className="clone-dialog">
+            <h2 className="clone-dialog__title">Duplicar rutina</h2>
+            <p className="clone-dialog__desc">Puedes cambiar el nombre de la copia antes de crearla.</p>
+            <input
+              className="clone-dialog__input"
+              type="text"
+              value={cloningName}
+              onChange={(e) => setCloningName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { void handleConfirmClone() } }}
+              placeholder={pendingClone.proposedName}
+              autoFocus
+              disabled={cloning}
+            />
+            <div className="clone-dialog__actions">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setPendingClone(null); setCloningName('') }}
+                disabled={cloning}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                loading={cloning}
+                onClick={() => { void handleConfirmClone() }}
+                disabled={cloning || !cloningName.trim()}
+              >
+                Duplicar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {scannerOpen && (
         <QrScannerDialog

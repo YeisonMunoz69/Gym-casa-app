@@ -1,4 +1,4 @@
-import { Trash2, ChevronRight, Dumbbell } from 'lucide-react'
+import { Trash2, ChevronRight, Dumbbell, Copy } from 'lucide-react'
 import { Card } from '../../../components/ui/Card'
 import { WEEKDAY_SHORT } from '../../../types/routine'
 import type { RoutineWithDays } from '../../../types/routine'
@@ -8,9 +8,10 @@ type RoutineCardProps = {
   onSelect: () => void
   onDelete: () => void
   onToggle: () => void
+  onDuplicate: () => void
 }
 
-export function RoutineCard({ routine, onSelect, onDelete, onToggle }: RoutineCardProps) {
+export function RoutineCard({ routine, onSelect, onDelete, onToggle, onDuplicate }: RoutineCardProps) {
   const dayChips = routine.routine_days
     .sort((a, b) => a.weekday - b.weekday)
     .map((d) => WEEKDAY_SHORT[d.weekday])
@@ -61,6 +62,18 @@ export function RoutineCard({ routine, onSelect, onDelete, onToggle }: RoutineCa
         </div>
         <button
           type="button"
+          className="routine-clone-btn"
+          aria-label="Duplicar rutina"
+          title="Duplicar rutina"
+          onClick={(e) => {
+            e.stopPropagation()
+            onDuplicate()
+          }}
+        >
+          <Copy strokeWidth={2.5} />
+        </button>
+        <button
+          type="button"
           className="routine-delete-btn"
           aria-label="Eliminar rutina"
           title="Eliminar rutina"
@@ -75,3 +88,4 @@ export function RoutineCard({ routine, onSelect, onDelete, onToggle }: RoutineCa
     </Card>
   )
 }
+

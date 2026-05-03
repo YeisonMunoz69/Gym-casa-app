@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Plus, X, Share2 } from 'lucide-react'
+import { ArrowLeft, Plus, X, Share2, Pencil } from 'lucide-react'
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
 import { IconButton } from '../../../components/ui/IconButton'
+import { Button } from '../../../components/ui/Button'
 import { showToast } from '../../../components/ui/Toast'
-import { addRoutineDay, removeRoutineDay } from '../../../services/routines.service'
+import { addRoutineDay, removeRoutineDay, renameRoutine } from '../../../services/routines.service'
 import { DayExerciseList } from './DayExerciseList'
 import { ShareRoutineModal } from './ShareRoutineModal'
 import { HelpVideoButton } from '../../../components/ui/HelpVideo/HelpVideoButton'
@@ -21,6 +22,9 @@ export function RoutineDetail({ routine, onBack, onRoutineChanged }: RoutineDeta
   const [selectedDay, setSelectedDay] = useState<RoutineDayRow | null>(null)
   const [pendingDeleteDay, setPendingDeleteDay] = useState<{ id: string; weekday: number } | null>(null)
   const [showShareModal, setShowShareModal] = useState(false)
+  const [renameOpen, setRenameOpen] = useState(false)
+  const [renameDraft, setRenameDraft] = useState('')
+  const [renaming, setRenaming] = useState(false)
   const sortedDays = [...routine.routine_days].sort((a, b) => a.weekday - b.weekday)
   const assignedWeekdays = routine.routine_days.map((d) => d.weekday)
   const availableWeekdays = [0, 1, 2, 3, 4, 5, 6].filter(
@@ -55,11 +59,33 @@ export function RoutineDetail({ routine, onBack, onRoutineChanged }: RoutineDeta
     }
   }
 
+  async function handleConfirmRename() {
+    const nextName = renameDraft.trim()
+    if (!nextName || nextName === routine.name) { setRenameOpen(false); return }
+    setRenaming(true)
+    const { error } = await renameRoutine(routine.id, nextName)
+    setRenaming(false)
+    if (error) {
+      showToast('Error al renombrar', 'error')
+    } else {
+      showToast('Rutina renombrada', 'success')
+      setRenameOpen(false)
+      onRoutineChanged()
+    }
+  }
+
   return (
     <div className="routine-detail">
       <div className="routine-detail__header">
         <IconButton icon={ArrowLeft} ariaLabel="Volver a rutinas" onClick={onBack} size="md" />
         <h2 className="routine-detail__title">{routine.name}</h2>
+        <IconButton
+          icon={Pencil}
+          ariaLabel="Renombrar rutina"
+          size="md"
+          variant="ghost"
+          onClick={() => { setRenameDraft(routine.name); setRenameOpen(true) }}
+        />
         <HelpVideoButton sectionKey="routine_detail" title="Tutorial: Editar Rutina" />
         <IconButton
           icon={Share2}
@@ -146,6 +172,44 @@ export function RoutineDetail({ routine, onBack, onRoutineChanged }: RoutineDeta
           routineName={routine.name}
           onClose={() => setShowShareModal(false)}
         />
+      )}
+
+      {renameOpen && (
+        <div className="clone-dialog-overlay" role="dialog" aria-modal="true" aria-label="Renombrar rutina">
+          <div className="clone-dialog">
+            <h2 className="clone-dialog__title">Renombrar rutina</h2>
+            <p className="clone-dialog__desc">Escribe el nuevo nombre para esta rutina.</p>
+            <input
+              className="clone-dialog__input"
+              type="text"
+              value={renameDraft}
+              onChange={(e) => setRenameDraft(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { void handleConfirmRename() } }}
+              placeholder={routine.name}
+              autoFocus
+              disabled={renaming}
+            />
+            <div className="clone-dialog__actions">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setRenameOpen(false)}
+                disabled={renaming}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                loading={renaming}
+                onClick={() => { void handleConfirmRename() }}
+                disabled={renaming || !renameDraft.trim()}
+              >
+                Guardar
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

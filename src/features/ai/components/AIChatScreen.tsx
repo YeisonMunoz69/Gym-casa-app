@@ -24,6 +24,9 @@ const SUGGESTIONS = [
   'Como puedo mejorar mi recuperacion muscular?',
   'Que deberia comer antes de entrenar?',
   'Como progreso mas rapido segun mis datos?',
+  'Cuál sería la mejor rutina para mí?',
+  'Que ejercicios deberia hacer?',
+  'Qué dieta debo seguir para alcanzar mi objetivo?',
 ]
 
 export function AIChatScreen() {
@@ -31,12 +34,12 @@ export function AIChatScreen() {
   const { context, loading: ctxLoading } = useUserContext()
 
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE])
-  const [input, setInput]       = useState('')
-  const [sending, setSending]   = useState(false)
-  const [error, setError]       = useState<string | null>(null)
+  const [input, setInput] = useState('')
+  const [sending, setSending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const bottomRef = useRef<HTMLDivElement>(null)
-  const inputRef  = useRef<HTMLTextAreaElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })

@@ -43,7 +43,30 @@ const LEVEL_LABELS: Record<string, string> = {
   advanced:     'avanzado',
 }
 
-function buildSystemPrompt(ctx: Omit<UserContext, 'systemPrompt'>): string {
+const GENDER_LABELS: Record<string, string> = {
+  male:   'masculino',
+  female: 'femenino',
+  other:  'otro',
+}
+
+function calcAge(birthDate: string | null): number | null {
+  if (!birthDate) return null
+  const diff = Date.now() - new Date(birthDate).getTime()
+  return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25))
+}
+
+type PhysicalMetrics = {
+  gender:      string | null
+  age:         number | null
+  heightCm:    number | null
+  currentWeight: number | null
+  bodyFatPct:  number | null
+}
+
+function buildSystemPrompt(
+  ctx: Omit<UserContext, 'systemPrompt'>,
+  metrics: PhysicalMetrics,
+): string {
   const sessions = ctx.recentSessions.length
     ? ctx.recentSessions
         .map((s) => `  - ${s.date}: ${s.durationMin} min | ${s.totalSets} sets completados`)
@@ -56,9 +79,22 @@ function buildSystemPrompt(ctx: Omit<UserContext, 'systemPrompt'>): string {
         .join('\n')
     : '  Sin datos de balance muscular aun.'
 
+  const physLines: string[] = []
+  if (metrics.gender)        physLines.push(`Genero: ${metrics.gender}`)
+  if (metrics.age !== null)  physLines.push(`Edad: ${metrics.age} anos`)
+  if (metrics.heightCm)      physLines.push(`Altura: ${metrics.heightCm} cm`)
+  if (metrics.currentWeight) physLines.push(`Peso actual: ${metrics.currentWeight} kg`)
+  if (metrics.bodyFatPct !== null) physLines.push(`% Grasa corporal: ${metrics.bodyFatPct}%`)
+  const physBlock = physLines.length
+    ? physLines.map((l) => `  - ${l}`).join('\n')
+    : '  Sin metricas fisicas registradas.'
+
   return `
 Eres el entrenador personal y nutricionista IA de la app Fitness Casa.
 Tu usuario se llama ${ctx.name}. Su objetivo es ${ctx.goal} y nivel: ${ctx.level}.
+
+METRICAS FISICAS DEL USUARIO:
+${physBlock}
 
 DATOS REALES DEL USUARIO:
 Sesiones recientes (ultimas 7):
@@ -71,10 +107,10 @@ REGLAS ESTRICTAS QUE DEBES CUMPLIR SIEMPRE:
 1. SOLO responde sobre fitness, entrenamiento, nutricion, recuperacion y bienestar fisico.
 2. Si el usuario pregunta algo fuera de estos temas, responde exactamente:
    "Solo puedo ayudarte con temas de entrenamiento, nutricion y recuperacion. Que necesitas saber sobre tu rutina?"
-3. Usa los datos reales del usuario cuando sean relevantes.
-4. Responde en espanol, directo y motivador.
+3. Usa los datos reales del usuario cuando sean relevantes. Calcula su IMC si tienes peso y altura.
+4. Responde en español, directo y motivador.
 5. Nunca uses emojis ni caracteres especiales.
-6. Maximo 3 parrafos por respuesta.
+6. Maximo 3 parrafos por respuesta con lenguaje natural.
 `.trim()
 }
 
@@ -116,7 +152,6 @@ export function useUserContext(): { context: UserContext | null; loading: boolea
       })
 
       // ── Query 2: Balance muscular ─────────────────────────────
-      // Usamos los IDs de sesión ya obtenidos para evitar joins complejos
       const sessionIds = (sessions ?? []).map((s: any) => s.id).filter(Boolean)
 
       let muscleBalance: MuscleBalance[] = []
@@ -138,13 +173,31 @@ export function useUserContext(): { context: UserContext | null; loading: boolea
           .map(([muscle, sets]) => ({ muscle, sets }))
       }
 
+      // ── Query 3: Medición corporal más reciente ───────────────
+      const { data: lastMeasure } = await supabase
+        .from('body_measurements')
+        .select('weight_kg, body_fat_pct')
+        .eq('user_id', userId!)
+        .order('measured_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      // ── Construir métricas físicas ────────────────────────────
+      const metrics: PhysicalMetrics = {
+        gender:        GENDER_LABELS[profile?.gender ?? ''] ?? null,
+        age:           calcAge(profile?.birth_date ?? null),
+        heightCm:      profile?.height_cm ?? null,
+        currentWeight: (lastMeasure as any)?.weight_kg ?? profile?.initial_weight_kg ?? null,
+        bodyFatPct:    (lastMeasure as any)?.body_fat_pct ?? null,
+      }
+
       // ── Construir contexto ────────────────────────────────────
       const name  = profile?.full_name?.split(' ')[0] ?? 'Atleta'
       const goal  = GOAL_LABELS[profile?.goal ?? ''] ?? 'mejorar su condicion fisica'
       const level = LEVEL_LABELS[profile?.experience_level ?? ''] ?? 'intermedio'
 
       const base = { name, goal, level, recentSessions, muscleBalance }
-      setContext({ ...base, systemPrompt: buildSystemPrompt(base) })
+      setContext({ ...base, systemPrompt: buildSystemPrompt(base, metrics) })
       setLoading(false)
     }
 
