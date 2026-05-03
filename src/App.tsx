@@ -26,6 +26,7 @@ import { ImportRoutineScreen } from './features/routines/components/ImportRoutin
 import { AIChatScreen } from './features/ai/components/AIChatScreen'
 import { AdminScreen } from './features/admin/AdminScreen'
 import { BannedScreen } from './features/admin/BannedScreen'
+import { WelcomeVideoModal, hasSeenWelcome } from './components/ui/WelcomeVideoModal'
 import { checkIsBanned } from './services/profiles.service'
 import { useAuthStore } from './stores/authStore'
 import { useSessionStore } from './stores/sessionStore'
@@ -105,6 +106,7 @@ function AuthenticatedApp() {
   const { hasProfile, loading: profileLoading } = useUserProfile()
   const [isBanned,     setIsBanned]     = useState(false)
   const [banChecked,   setBanChecked]   = useState(false)
+  const [showWelcome,  setShowWelcome]  = useState(false)
 
   // Verificar ban al autenticar
   useEffect(() => {
@@ -112,6 +114,8 @@ function AuthenticatedApp() {
     checkIsBanned(userId).then((banned) => {
       setIsBanned(banned)
       setBanChecked(true)
+      // Mostrar tutorial de bienvenida solo si no lo ha visto
+      if (!banned) setShowWelcome(!hasSeenWelcome())
     })
   }, [userId])
 
@@ -121,26 +125,33 @@ function AuthenticatedApp() {
   if (!hasProfile) return <OnboardingFlow />
 
   return (
-    <Routes>
-      {/* Ruta pública de importación — sin AppShell */}
-      <Route path="/import" element={<ImportRoutineScreen />} />
+    <>
+      <Routes>
+        {/* Ruta pública de importación — sin AppShell */}
+        <Route path="/import" element={<ImportRoutineScreen />} />
 
-      {/* Rutas con chrome (Header + BottomNav) */}
-      <Route element={<AppShell />}>
-        <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<DashboardScreen />} />
-        <Route path="/routines"  element={<RoutinesTab />} />
-        <Route path="/session"   element={<SessionTab />} />
-        <Route path="/exercises" element={<CatalogScreen />} />
-        <Route path="/settings"  element={<SettingsScreen />} />
-        <Route path="/history"   element={<HistoryRoute />} />
-        <Route path="/records"   element={<RecordsRoute />} />
-        <Route path="/ai"        element={<AIChatRoute />} />
-        <Route path="/admin"     element={<AdminScreen />} />
-      </Route>
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
-    </Routes>
+        {/* Rutas con chrome (Header + BottomNav) */}
+        <Route element={<AppShell />}>
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<DashboardScreen />} />
+          <Route path="/routines"  element={<RoutinesTab />} />
+          <Route path="/session"   element={<SessionTab />} />
+          <Route path="/exercises" element={<CatalogScreen />} />
+          <Route path="/settings"  element={<SettingsScreen />} />
+          <Route path="/history"   element={<HistoryRoute />} />
+          <Route path="/records"   element={<RecordsRoute />} />
+          <Route path="/ai"        element={<AIChatRoute />} />
+          <Route path="/admin"     element={<AdminScreen />} />
+        </Route>
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+
+      {/* Tutorial de bienvenida — solo la primera vez por dispositivo */}
+      {showWelcome && (
+        <WelcomeVideoModal onClose={() => setShowWelcome(false)} />
+      )}
+    </>
   )
 }
 

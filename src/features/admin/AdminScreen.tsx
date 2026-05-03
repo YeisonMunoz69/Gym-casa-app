@@ -7,16 +7,17 @@
    ============================================================ */
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Users, Gift, Crown } from 'lucide-react'
+import { ArrowLeft, Users, Gift, Crown, Video } from 'lucide-react'
 import { useIsAdmin, useIsSuperAdmin } from '../../utils/useIsAdmin'
 import { UsersTab } from './UsersTab'
 import { BonusTab } from './BonusTab'
+import { VideosTab } from './VideosTab'
 import { UserDetailPanel } from './UserDetailPanel'
 import { useAuthStore } from '../../stores/authStore'
 import type { AdminUser } from '../../services/admin.service'
 import './AdminScreen.css'
 
-type TabId = 'users' | 'bonus'
+type TabId = 'users' | 'bonus' | 'videos'
 
 export function AdminScreen() {
   const navigate      = useNavigate()
@@ -74,15 +75,23 @@ export function AdminScreen() {
           >
             <Gift size={14} /> Ejercicios Bonus
           </button>
+          <button
+            className={`admin-screen__tab ${activeTab === 'videos' ? 'admin-screen__tab--active' : ''}`}
+            onClick={() => setActiveTab('videos')}
+            role="tab" aria-selected={activeTab === 'videos'}
+          >
+            <Video size={14} /> Videos
+          </button>
         </div>
       )}
 
       {/* ── Contenido scrollable ── */}
       <div className="admin-screen__content">
-        {activeTab === 'users' && isSuperAdmin && (
+        {activeTab === 'users'  && isSuperAdmin && (
           <UsersTab onSelectUser={setSelectedUser} />
         )}
-        {activeTab === 'bonus' && <BonusTab canEdit={isSuperAdmin} />}
+        {activeTab === 'bonus'  && <BonusTab canEdit={isSuperAdmin} />}
+        {activeTab === 'videos' && isSuperAdmin && <VideosTab />}
       </div>
 
       {/* ── UserDetailPanel fuera del scroll container (evita stacking context bug) ── */}

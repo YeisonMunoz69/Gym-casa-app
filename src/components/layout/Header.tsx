@@ -4,19 +4,50 @@
    Añade corona de admin solo visible al super-admin.
    Límite: 150 líneas — SKILL-CODE §2.4
    ============================================================ */
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { History, Trophy, User, Sparkles, Crown } from 'lucide-react'
 import { IconButton } from '../ui/IconButton'
 import { useProfileStore } from '../../stores/profileStore'
+import { useAuthStore } from '../../stores/authStore'
 import { useAIButtonEffect } from '../../features/ai/hooks/useAIButtonEffect'
 import { useIsAdmin } from '../../utils/useIsAdmin'
+import { supabase } from '../../services/supabase'
 import './Header.css'
 
 export function Header() {
-  const navigate       = useNavigate()
-  const profile        = useProfileStore((s) => s.profile)
+  const navigate           = useNavigate()
+  const profile            = useProfileStore((s) => s.profile)
+  const userId             = useAuthStore((s) => s.user?.id)
   const { rainbowEnabled } = useAIButtonEffect()
-  const isAdmin        = useIsAdmin()
+  const isAdmin            = useIsAdmin()
+  const [displayName, setDisplayName] = useState<string | null>(null)
+
+  // Cargar display_name desde la tabla pública profiles
+  useEffect(() => {
+    if (!userId) return
+    supabase
+      .from('profiles')
+      .select('display_name')
+      .eq('id', userId)
+      .maybeSingle()
+      .then(({ data }) => {
+        const name = (data as { display_name: string | null } | null)?.display_name
+        setDisplayName(name ?? null)
+      })
+  }, [userId])
+
+  // Saludo según género
+  const greeting =
+    profile?.gender === 'male'   ? 'Bienvenido' :
+    profile?.gender === 'female' ? 'Bienvenida' :
+    'Hola'
+
+  // Nombre: display_name (elegido por el usuario) > primer nombre de registro > fallback
+  const firstName =
+    displayName ||
+    profile?.full_name?.split(' ')[0] ||
+    'Atleta'
 
   return (
     <header className="header">
@@ -32,7 +63,7 @@ export function Header() {
             </div>
           )}
           <span className="header__title">
-            Bienvenidx, {profile?.full_name?.split(' ')[0] || 'Atleta'}!
+            {greeting}, {firstName}!
           </span>
         </div>
 

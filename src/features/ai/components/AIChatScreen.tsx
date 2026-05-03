@@ -108,8 +108,8 @@ export function AIChatScreen() {
             <Sparkles size={16} />
           </div>
           <div>
-            <h1 className="ai-chat__header-title">Entrenador IA</h1>
-            <p className="ai-chat__header-sub">Gemini 3.1 Flash — contexto personalizado</p>
+            <h1 className="ai-chat__header-title">Entrenador impulsado con IA</h1>
+            <p className="ai-chat__header-sub">Ayudando con Gemini 3.1 Flash — contexto personalizado para ti</p>
           </div>
         </div>
       </header>
