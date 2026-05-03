@@ -1,0 +1,212 @@
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+  white-space: nowrap;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.96);
+  filter: hue-rotate(250deg);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* --- Sizes --- */
+.btn--sm {
+  height: 32px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-xs);
+}
+
+.btn--md {
+  height: 40px;
+  padding: 0 var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.btn--lg {
+  height: 48px;
+  padding: 0 var(--space-6);
+  font-size: var(--text-base);
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* --- Variants --- */
+.btn--primary {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-primary);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  box-shadow: var(--shadow-glow);
+}
+
+.btn--secondary {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+
+.btn--secondary:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-hover);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.btn--ghost:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.btn--danger {
+  background: var(--color-error);
+  color: var(--color-text-inverse);
+  border-color: var(--color-error);
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: hsl(0, 72%, 58%);
+  box-shadow: 0 0 16px var(--color-error-glow);
+}
+
+/* --- Full width --- */
+.btn--full {
+  width: 100%;
+}
+
+/* --- Loading spinner --- */
+.btn--loading {
+  pointer-events: none;
+}
+
+.btn__hamster {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn__content--hidden {
+  visibility: hidden;
+}
+
+.btn__content {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* --- Cyber Reflection Effect --- */
+.btn--cyber {
+  overflow: hidden;
+  position: relative;
+  border-bottom-width: 4px;
+  transition: all 300ms;
+}
+
+.btn--cyber:hover:not(:disabled) {
+  filter: brightness(1.2);
+  border-top-width: 4px;
+  border-bottom-width: 1px;
+}
+
+.btn--cyber:active:not(:disabled) {
+  opacity: 0.75;
+  transform: none; /* override default btn active */
+  filter: none;
+}
+
+.btn__reflection {
+  position: absolute;
+  top: -150%;
+  left: 0;
+  display: inline-flex;
+  width: 20rem;
+  height: 5px;
+  border-radius: var(--radius-md);
+  opacity: 0.5;
+  transition: top 500ms;
+  pointer-events: none;
+}
+
+.btn--cyber:hover .btn__reflection {
+  top: 150%;
+}
+
+/* Cyber color overrides for variants */
+.btn--cyber.btn--primary {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* Evitar que el hover por defecto lo vuelva verde sólido para no ocultar el texto */
+.btn--cyber.btn--primary:hover:not(:disabled) {
+  background: var(--color-primary-subtle);
+}
+
+.btn--cyber.btn--primary .btn__reflection {
+  background-color: var(--color-primary);
+  box-shadow: 0 0 15px 10px var(--color-primary-glow);
+}
+
+.btn--cyber.btn--secondary,
+.btn--cyber.btn--ghost {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+
+.btn--cyber.btn--secondary:hover:not(:disabled),
+.btn--cyber.btn--ghost:hover:not(:disabled) {
+  background: var(--color-bg-tertiary);
+}
+
+.btn--cyber.btn--secondary .btn__reflection,
+.btn--cyber.btn--ghost .btn__reflection {
+  background-color: var(--color-text-secondary);
+  box-shadow: 0 0 15px 10px rgba(255, 255, 255, 0.1);
+}
+
+.btn--cyber.btn--danger {
+  background: rgba(251, 113, 133, 0.15);
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.btn--cyber.btn--danger:hover:not(:disabled) {
+  background: rgba(251, 113, 133, 0.15);
+}
+
+.btn--cyber.btn--danger .btn__reflection {
+  background-color: var(--color-error);
+  box-shadow: 0 0 15px 10px var(--color-error-glow);
+}

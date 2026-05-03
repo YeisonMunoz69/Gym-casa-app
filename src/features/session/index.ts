@@ -1,0 +1,10 @@
+// features/session/index.ts — Barrel export FASE 03.2
+export { SessionStarter } from './components/SessionStarter'
+export { ActiveSessionView } from './components/ActiveSessionView'
+export { SessionSummary } from './components/SessionSummary'
+export { ExerciseQueue } from './components/ExerciseQueue'
+export { useActiveSession } from './hooks/useActiveSession'
+export { useRestTimer } from './hooks/useRestTimer'
+export { useSetAutoSave } from './hooks/useSetAutoSave'
+export { useTimerSound } from './hooks/useTimerSound'
+export { useTimerPersistence } from './hooks/useTimerPersistence'

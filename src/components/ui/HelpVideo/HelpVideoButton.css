@@ -1,0 +1,113 @@
+/* HelpVideoButton.css — FASE 06 GYM-YJMG */
+
+.help-fab-wrapper {
+  --border_radius: var(--radius-md);
+  --active: 0;
+  
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: var(--border_radius);
+}
+
+.help-fab-wrapper--static {
+  /* Si está estático, le damos algo de margin para compensar la falta de glow? No, el button mantendrá el tamaño */
+}
+
+.help-fab-wrapper:is(:hover, :focus-within) {
+  --active: 1;
+}
+
+/* El resplandor (sombreado) que envuelve al botón */
+.help-fab-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
+  border-radius: calc(var(--border_radius) + 2px);
+  
+  background-color: var(--color-primary);
+  background-image: radial-gradient(at 51% 89%, hsla(38, 92%, 60%, 1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, hsla(38, 92%, 40%, 1) 0px, transparent 50%),
+    radial-gradient(at 22% 91%, hsla(38, 92%, 40%, 1) 0px, transparent 50%);
+  
+  box-shadow: 0 0 16px 2px hsla(38, 92%, 50%, calc(0.3 + var(--active) * 0.4)),
+              inset 0 0 4px hsla(0, 0%, 100%, 0.3);
+              
+  opacity: calc(0.5 + var(--active) * 0.5);
+  transition: opacity var(--transition-fast), box-shadow var(--transition-fast);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Efecto de borde giratorio */
+.help-fab__dots-border {
+  --size_border: calc(100% + 6px);
+  overflow: hidden;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: var(--size_border);
+  height: var(--size_border);
+  background-color: transparent;
+  border-radius: calc(var(--border_radius) + 3px);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.help-fab__dots-border::before {
+  content: "";
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transform-origin: left;
+  transform: rotate(0deg);
+  width: 100%;
+  height: 2rem;
+  background-color: var(--color-text-inverse); /* Un blanco brillante para destacar */
+  mask: linear-gradient(transparent 0%, white 120%);
+  -webkit-mask: linear-gradient(transparent 0%, white 120%);
+  animation: rotate 2.5s linear infinite;
+}
+
+@keyframes rotate {
+  to { transform: rotate(360deg); }
+}
+
+.help-fab-btn-container {
+  position: relative;
+  z-index: 2;
+  margin: 2px;
+}
+
+.help-fab-wrapper--static .help-fab-btn-container {
+  margin: 0;
+}
+
+/* Reducimos el tamaño del botón interno para que se vea más delicado */
+.help-fab-btn-container .btn {
+  height: 28px;
+  min-width: 28px;
+  padding: 0 8px;
+}
+
+.help-fab-btn-container .btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Animación opcional del ícono adentro */
+.help-fab__icon {
+  animation: path-bounce 2s ease-in-out infinite;
+}
+
+@keyframes path-bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}

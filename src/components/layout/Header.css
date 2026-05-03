@@ -1,0 +1,147 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-header);
+  height: var(--header-height);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0 var(--space-4);
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+}
+
+.header__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.header__avatar-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 0 10px var(--color-primary-subtle);
+}
+
+.header__avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.header__avatar-icon {
+  color: var(--color-text-secondary);
+}
+
+.header__title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.2px;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-accent-cyan)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Botón chat IA — anillo arcoiris giratorio ── */
+.header__ai-btn-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  padding: 2px;
+  isolation: isolate;
+}
+
+/* Disco arcoiris — solo visible cuando está habilitado */
+.header__ai-btn-wrap--rainbow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    hsl(0,   90%, 62%),
+    hsl(45,  90%, 62%),
+    hsl(90,  90%, 50%),
+    hsl(150, 90%, 48%),
+    hsl(200, 90%, 58%),
+    hsl(260, 90%, 65%),
+    hsl(300, 90%, 60%),
+    hsl(340, 90%, 62%),
+    hsl(360, 90%, 62%)
+  );
+  animation: ai-btn-spin 2.4s linear infinite;
+}
+
+/* Mascara central — solo cuando el arcoiris está activo */
+.header__ai-btn-wrap--rainbow::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: var(--glass-bg-strong);
+}
+
+/* Boton encima de los pseudo-elementos */
+.header__ai-btn-wrap .icon-btn {
+  position: relative;
+  z-index: 1;
+  color: var(--color-primary);
+}
+
+.header__ai-btn-wrap .icon-btn:hover {
+  color: var(--color-text-primary);
+}
+
+@keyframes ai-btn-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Botón corona (solo super-admin) ── */
+.header__crown-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: hsl(45 90% 58%);
+  transition: background var(--transition-fast), transform var(--transition-fast), color var(--transition-fast);
+  position: relative;
+}
+
+.header__crown-btn:hover {
+  background: hsl(45 90% 58% / 0.12);
+  transform: scale(1.1);
+  color: hsl(45 90% 68%);
+}
+
+.header__crown-btn:active {
+  transform: scale(0.95);
+}

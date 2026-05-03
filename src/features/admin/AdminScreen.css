@@ -1,0 +1,129 @@
+/* AdminScreen.css — Pantalla de administracion con tabs */
+
+.admin-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;   /* definitivamente sobre Header y BottomNav (--z-header: 300) */
+  background: var(--color-bg-primary);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Header ─────────────────────────────────────────── */
+.admin-screen__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--space-4) + env(safe-area-inset-top)) var(--space-4) var(--space-4);
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.admin-screen__back {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  transition: background var(--transition-fast);
+}
+
+.admin-screen__back:hover { background: var(--color-bg-tertiary); }
+
+.admin-screen__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.admin-screen__crown {
+  color: var(--color-primary);
+}
+
+.admin-screen__crown--super {
+  color: hsl(45 90% 58%);
+}
+
+.admin-screen__title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.admin-screen__header-end {
+  display: flex;
+  align-items: center;
+}
+
+.admin-screen__badge {
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.1em;
+  padding: 3px 7px;
+  border-radius: var(--radius-sm);
+}
+
+.admin-screen__badge--super {
+  background: hsl(45 90% 58% / 0.15);
+  color: hsl(45 90% 62%);
+  border: 1px solid hsl(45 90% 58% / 0.35);
+}
+
+.admin-screen__badge--admin {
+  background: hsla(168, 72%, 45%, 0.12);
+  color: var(--color-primary);
+  border: 1px solid hsla(168, 72%, 45%, 0.3);
+}
+
+/* ── Tabs ────────────────────────────────────────────── */
+.admin-screen__tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  flex-shrink: 0;
+}
+
+.admin-screen__tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  font-family: var(--font-sans);
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition-fast);
+  margin-bottom: -1px;
+}
+
+.admin-screen__tab:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-tertiary);
+}
+
+.admin-screen__tab--active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  background: none;
+}
+
+/* ── Contenido ───────────────────────────────────────── */
+.admin-screen__content {
+  flex: 1;
+  overflow-y: auto;
+  /* sin padding-bottom extra — el admin-screen tapa el BottomNav completamente */
+  padding: 0 var(--space-4) var(--space-6);
+}

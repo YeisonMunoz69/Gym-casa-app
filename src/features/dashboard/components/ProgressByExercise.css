@@ -1,0 +1,154 @@
+/* ============================================================
+   ProgressByExercise.css — Estilos para gráfica de progresión
+   FASE 04 — GYM-YJMG
+   Sin valores mágicos — solo variables de tokens.css
+   ============================================================ */
+
+.pbe-section {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(var(--glass-blur));
+}
+
+/* --- Header --- */
+.pbe-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.pbe-header__icon {
+  color: var(--color-primary);
+  filter: drop-shadow(0 0 6px var(--color-primary-glow));
+  flex-shrink: 0;
+}
+
+.pbe-header__title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-primary);
+}
+
+/* --- Selector de ejercicio --- */
+.pbe-select-wrap {
+  position: relative;
+  margin-bottom: var(--space-4);
+}
+
+.pbe-select {
+  width: 100%;
+  padding: var(--space-2) var(--space-4) var(--space-2) var(--space-3);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  font-family: var(--font-sans);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+  padding-right: var(--space-8);
+}
+
+.pbe-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-subtle);
+}
+
+.pbe-select-wrap__icon {
+  position: absolute;
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+/* --- Gráfica --- */
+.pbe-chart {
+  animation: pbe-fade-in var(--transition-base) backwards;
+}
+
+@keyframes pbe-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.pbe-chart__label {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  text-align: center;
+  margin-top: var(--space-2);
+}
+
+/* --- Tooltip --- */
+.pbe-tooltip {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  box-shadow: var(--shadow-md);
+}
+
+.pbe-tooltip__date {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  font-family: var(--font-mono);
+}
+
+.pbe-tooltip__row {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+.pbe-tooltip__row strong {
+  color: var(--color-primary);
+  font-weight: var(--weight-semibold);
+  font-family: var(--font-mono);
+}
+
+/* --- Estado vacío --- */
+.pbe-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-4);
+  color: var(--color-text-tertiary);
+  text-align: center;
+}
+
+.pbe-empty__text {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.pbe-empty__hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+}
+
+/* --- Loading --- */
+.pbe-loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-8) 0;
+}
+
+/* --- Error --- */
+.pbe-error {
+  font-size: var(--text-sm);
+  color: var(--color-error);
+  text-align: center;
+  padding: var(--space-3);
+}

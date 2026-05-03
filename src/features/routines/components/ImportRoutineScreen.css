@@ -1,0 +1,160 @@
+/* ============================================================
+   ImportRoutineScreen.css — Pantalla de importación QR
+   FASE 05.5 — GYM-YJMG
+   ============================================================ */
+
+.import-screen {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-6) var(--space-4) var(--space-10);
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  width: 100%;
+  gap: var(--space-5);
+  animation: fade-in 300ms ease;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(12px) }
+  to   { opacity: 1; transform: translateY(0) }
+}
+
+.import-screen--success,
+.import-screen--error {
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-4);
+}
+
+.import-screen__success-icon {
+  color: var(--color-success);
+  filter: drop-shadow(0 0 12px hsla(145, 65%, 42%, 0.5));
+  animation: pop-in 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.import-screen__error-icon {
+  color: var(--color-warning);
+}
+
+@keyframes pop-in {
+  from { transform: scale(0.6); opacity: 0 }
+  to   { transform: scale(1);   opacity: 1 }
+}
+
+.import-screen__badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-primary-glow);
+  border: 1px solid hsla(168, 72%, 45%, 0.3);
+  color: var(--color-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.import-screen__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-primary);
+  text-align: center;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.import-screen__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+}
+
+.import-screen__dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-text-tertiary);
+}
+
+.import-screen__days {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.import-day {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  backdrop-filter: blur(var(--glass-blur));
+}
+
+.import-day__label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-primary);
+  margin: 0 0 var(--space-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.import-day__exercises {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.import-day__exercise {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+}
+
+.import-day__icon {
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.import-day__sets {
+  margin-left: auto;
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+.import-screen__login-hint {
+  font-size: var(--text-sm);
+  color: var(--color-warning);
+  text-align: center;
+  padding: var(--space-3) var(--space-4);
+  background: hsla(40, 90%, 50%, 0.1);
+  border: 1px solid hsla(40, 90%, 50%, 0.2);
+  border-radius: var(--radius-md);
+  width: 100%;
+  margin: 0;
+}
+
+.import-screen__actions {
+  display: flex;
+  gap: var(--space-3);
+  width: 100%;
+  padding-top: var(--space-2);
+}
+
+.import-screen__actions > * {
+  flex: 1;
+}

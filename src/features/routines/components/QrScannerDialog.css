@@ -1,0 +1,138 @@
+/* ============================================================
+   QrScannerDialog.css — Estilos del scanner QR
+   FASE 05.5 fix — GYM-YJMG
+   ============================================================ */
+
+.qr-scanner__overlay {
+  position: fixed;
+  inset: 0;
+  background: hsla(0, 0%, 0%, 0.72);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 500;
+  padding: var(--space-4);
+  animation: overlay-fade-in 200ms ease;
+}
+
+.qr-scanner {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl) var(--radius-2xl) var(--radius-lg) var(--radius-lg);
+  padding: var(--space-6);
+  width: 100%;
+  max-width: var(--content-max-width);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  animation: modal-slide-up 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.qr-scanner__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.qr-scanner__title {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.qr-scanner__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.qr-scanner__close:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.qr-scanner__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.qr-scanner__frame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-4);
+  border: 2px dashed hsla(168, 72%, 45%, 0.35);
+  border-radius: var(--radius-xl);
+  background: var(--color-primary-subtle);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.qr-scanner__frame:hover {
+  border-color: hsla(168, 72%, 45%, 0.6);
+  background: var(--color-primary-glow);
+}
+
+.qr-scanner__icon {
+  color: var(--color-primary);
+  filter: drop-shadow(0 0 8px var(--color-primary-glow));
+  animation: scanner-pulse 2s ease-in-out infinite;
+}
+
+@keyframes scanner-pulse {
+  0%, 100% { opacity: 1; transform: scale(1) }
+  50%       { opacity: 0.7; transform: scale(0.95) }
+}
+
+.qr-scanner__hint {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin: 0;
+}
+
+.qr-scanner__error {
+  font-size: var(--text-sm);
+  color: var(--color-error);
+  text-align: center;
+  padding: var(--space-3);
+  background: hsla(0, 72%, 52%, 0.1);
+  border: 1px solid hsla(0, 72%, 52%, 0.2);
+  border-radius: var(--radius-md);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Spinner al procesar la imagen */
+.qr-scanner__icon--spinning {
+  animation: spin-cw 1s linear infinite;
+  color: var(--color-primary);
+}
+
+@keyframes spin-cw {
+  to { transform: rotate(360deg); }
+}
+
+/* Tip de captura de pantalla */
+.qr-scanner__tip {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  text-align: center;
+  margin: 0;
+  line-height: 1.5;
+}
+

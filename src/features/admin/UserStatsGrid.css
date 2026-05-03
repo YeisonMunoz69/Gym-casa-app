@@ -1,0 +1,73 @@
+/* UserStatsGrid.css */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+}
+
+.stats-grid--loading {
+  pointer-events: none;
+}
+
+.stats-grid__skeleton {
+  height: 86px;
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-lg);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.6 }
+  50%       { opacity: 1   }
+}
+
+.stats-grid__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-2);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.stats-grid__card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.stats-grid__card--accent {
+  border-color: hsl(45 90% 58% / 0.4);
+  background: hsl(45 90% 58% / 0.06);
+}
+
+.stats-grid__card--accent .stats-grid__icon {
+  color: hsl(45 90% 58%);
+}
+
+.stats-grid__icon {
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+}
+
+.stats-grid__value {
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-primary);
+  line-height: 1;
+}
+
+.stats-grid__label {
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: var(--weight-semibold);
+}

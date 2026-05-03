@@ -1,0 +1,249 @@
+/* UserDetailPanel.css */
+
+.user-detail {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;   /* portal en document.body, sobre admin-screen (1000) */
+  background: var(--color-bg-primary);
+  display: flex;
+  flex-direction: column;
+  animation: slide-in-right var(--transition-base) cubic-bezier(0.34, 1.20, 0.64, 1);
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%) }
+  to   { transform: translateX(0)    }
+}
+
+/* ── Header ─────────────────────────────────────────── */
+.user-detail__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--space-4) + env(safe-area-inset-top)) var(--space-4) var(--space-4);
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.user-detail__back {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  transition: background var(--transition-fast);
+}
+.user-detail__back:hover { background: var(--color-bg-tertiary); }
+
+.user-detail__title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.user-detail__header-end { width: 36px; }
+
+/* ── Scroll container ────────────────────────────────── */
+.user-detail__scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-5) var(--space-4) calc(var(--space-8) + env(safe-area-inset-bottom));
+}
+
+/* ── Hero ────────────────────────────────────────────── */
+.user-detail__hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-5) 0 var(--space-3);
+}
+
+.user-detail__avatar {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+.user-detail__crown {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  color: hsl(45 90% 58%);
+  background: var(--color-bg-primary);
+  border-radius: 50%;
+  padding: 2px;
+}
+
+.user-detail__name {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.user-detail__household {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  margin: 0;
+}
+
+.user-detail__badges {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: var(--space-1);
+}
+
+/* Role badge */
+.user-detail__role-badge {
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+}
+.user-detail__role-badge--super_admin {
+  background: hsl(45 90% 58% / 0.15);
+  color: hsl(45 90% 62%);
+  border: 1px solid hsl(45 90% 58% / 0.3);
+}
+.user-detail__role-badge--admin {
+  background: hsla(168, 72%, 45%, 0.12);
+  color: var(--color-primary);
+  border: 1px solid hsla(168, 72%, 45%, 0.3);
+}
+.user-detail__role-badge--user {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+/* Status badge */
+.user-detail__status-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+}
+.user-detail__status-badge--banned {
+  background: hsl(0 70% 55% / 0.15);
+  color: hsl(0 70% 60%);
+  border: 1px solid hsl(0 70% 55% / 0.3);
+}
+.user-detail__status-badge--inactive {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-tertiary);
+  border: 1px solid var(--color-border);
+}
+
+/* ── Sections ────────────────────────────────────────── */
+.user-detail__section {
+  margin-top: var(--space-5);
+}
+
+.user-detail__section-title {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 var(--space-3);
+}
+
+/* ── Action buttons ──────────────────────────────────── */
+.user-detail__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.user-detail__action-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-4);
+  border-radius: var(--radius-xl);
+  border: 1px solid;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.user-detail__action-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.user-detail__action-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.user-detail__action-label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-primary);
+}
+.user-detail__action-sub {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+}
+
+.user-detail__action-btn--primary {
+  border-color: hsla(168, 72%, 45%, 0.3);
+  color: var(--color-primary);
+}
+.user-detail__action-btn--primary:hover:not(:disabled) {
+  background: hsla(168, 72%, 45%, 0.08);
+  border-color: var(--color-primary);
+}
+
+.user-detail__action-btn--warn {
+  border-color: hsl(38 85% 55% / 0.3);
+  color: hsl(38 85% 55%);
+}
+.user-detail__action-btn--warn:hover:not(:disabled) {
+  background: hsl(38 85% 55% / 0.08);
+  border-color: hsl(38 85% 55%);
+}
+
+.user-detail__action-btn--danger {
+  border-color: hsl(0 70% 55% / 0.3);
+  color: hsl(0 70% 58%);
+}
+.user-detail__action-btn--danger:hover:not(:disabled) {
+  background: hsl(0 70% 55% / 0.1);
+  border-color: hsl(0 70% 55%);
+}
+
+.user-detail__action-btn--success {
+  border-color: hsla(168, 72%, 45%, 0.3);
+  color: var(--color-primary);
+}
+.user-detail__action-btn--success:hover:not(:disabled) {
+  background: hsla(168, 72%, 45%, 0.1);
+  border-color: var(--color-primary);
+}

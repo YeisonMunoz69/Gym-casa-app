@@ -1,0 +1,155 @@
+/* ============================================================
+   useUserContext.ts — Reune el contexto del usuario para la IA
+   FASE 06 — GYM-YJMG
+   Fix: columnas reales de la BD verificadas (session_date,
+   start_time, end_time). Queries simplificadas sin joins complejos.
+   ============================================================ */
+import { useEffect, useState } from 'react'
+import { useAuthStore } from '../../../stores/authStore'
+import { useProfileStore } from '../../../stores/profileStore'
+import { supabase } from '../../../services/supabase'
+
+export type UserContext = {
+  name:    string
+  goal:    string
+  level:   string
+  recentSessions: RecentSession[]
+  muscleBalance:  MuscleBalance[]
+  systemPrompt:   string
+}
+
+type RecentSession = {
+  date:        string
+  durationMin: number
+  totalSets:   number
+}
+
+type MuscleBalance = {
+  muscle: string
+  sets:   number
+}
+
+const GOAL_LABELS: Record<string, string> = {
+  lose_weight: 'perder grasa',
+  gain_muscle: 'ganar musculo',
+  maintain:    'mantenerse',
+  strength:    'fuerza maxima',
+  endurance:   'resistencia',
+}
+
+const LEVEL_LABELS: Record<string, string> = {
+  beginner:     'principiante',
+  intermediate: 'intermedio',
+  advanced:     'avanzado',
+}
+
+function buildSystemPrompt(ctx: Omit<UserContext, 'systemPrompt'>): string {
+  const sessions = ctx.recentSessions.length
+    ? ctx.recentSessions
+        .map((s) => `  - ${s.date}: ${s.durationMin} min | ${s.totalSets} sets completados`)
+        .join('\n')
+    : '  Sin sesiones registradas aun.'
+
+  const balance = ctx.muscleBalance.length
+    ? ctx.muscleBalance
+        .map((m) => `  - ${m.muscle}: ${m.sets} sets`)
+        .join('\n')
+    : '  Sin datos de balance muscular aun.'
+
+  return `
+Eres el entrenador personal y nutricionista IA de la app Fitness Casa.
+Tu usuario se llama ${ctx.name}. Su objetivo es ${ctx.goal} y nivel: ${ctx.level}.
+
+DATOS REALES DEL USUARIO:
+Sesiones recientes (ultimas 7):
+${sessions}
+
+Balance muscular acumulado (sets por grupo):
+${balance}
+
+REGLAS ESTRICTAS QUE DEBES CUMPLIR SIEMPRE:
+1. SOLO responde sobre fitness, entrenamiento, nutricion, recuperacion y bienestar fisico.
+2. Si el usuario pregunta algo fuera de estos temas, responde exactamente:
+   "Solo puedo ayudarte con temas de entrenamiento, nutricion y recuperacion. Que necesitas saber sobre tu rutina?"
+3. Usa los datos reales del usuario cuando sean relevantes.
+4. Responde en espanol, directo y motivador.
+5. Nunca uses emojis ni caracteres especiales.
+6. Maximo 3 parrafos por respuesta.
+`.trim()
+}
+
+export function useUserContext(): { context: UserContext | null; loading: boolean } {
+  const userId  = useAuthStore((s) => s.user?.id)
+  const profile = useProfileStore((s) => s.profile)
+  const [context, setContext] = useState<UserContext | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!userId) { setLoading(false); return }
+
+    async function build() {
+      setLoading(true)
+
+      // ── Query 1: Últimas 7 sesiones completadas ──────────────
+      const { data: sessions } = await supabase
+        .from('sessions')
+        .select('id, session_date, start_time, end_time, session_exercises(completed_sets)')
+        .eq('user_id', userId!)
+        .eq('status', 'completed')
+        .order('session_date', { ascending: false })
+        .limit(7)
+
+      const recentSessions: RecentSession[] = (sessions ?? []).map((s: any) => {
+        const totalSets = (s.session_exercises ?? []).reduce(
+          (acc: number, ex: any) => acc + (ex.completed_sets ?? 0), 0
+        )
+        const durationMin = s.start_time && s.end_time
+          ? Math.round(
+              (new Date(s.end_time).getTime() - new Date(s.start_time).getTime()) / 60000
+            )
+          : 0
+        return {
+          date:        s.session_date ?? '',
+          durationMin,
+          totalSets,
+        }
+      })
+
+      // ── Query 2: Balance muscular ─────────────────────────────
+      // Usamos los IDs de sesión ya obtenidos para evitar joins complejos
+      const sessionIds = (sessions ?? []).map((s: any) => s.id).filter(Boolean)
+
+      let muscleBalance: MuscleBalance[] = []
+
+      if (sessionIds.length > 0) {
+        const { data: exData } = await supabase
+          .from('session_exercises')
+          .select('completed_sets, exercises_catalog(muscle_group)')
+          .in('session_id', sessionIds)
+
+        const muscleCounts: Record<string, number> = {}
+        for (const row of (exData ?? []) as any[]) {
+          const mg = row.exercises_catalog?.muscle_group ?? 'General'
+          muscleCounts[mg] = (muscleCounts[mg] ?? 0) + (row.completed_sets ?? 0)
+        }
+        muscleBalance = Object.entries(muscleCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 6)
+          .map(([muscle, sets]) => ({ muscle, sets }))
+      }
+
+      // ── Construir contexto ────────────────────────────────────
+      const name  = profile?.full_name?.split(' ')[0] ?? 'Atleta'
+      const goal  = GOAL_LABELS[profile?.goal ?? ''] ?? 'mejorar su condicion fisica'
+      const level = LEVEL_LABELS[profile?.experience_level ?? ''] ?? 'intermedio'
+
+      const base = { name, goal, level, recentSessions, muscleBalance }
+      setContext({ ...base, systemPrompt: buildSystemPrompt(base) })
+      setLoading(false)
+    }
+
+    build()
+  }, [userId, profile])
+
+  return { context, loading }
+}

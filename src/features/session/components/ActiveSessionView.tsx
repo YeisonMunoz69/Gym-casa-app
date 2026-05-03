@@ -1,0 +1,244 @@
+/* ============================================================
+   ActiveSessionView.tsx — Layout orquestador de la sesión activa
+   FASE 03.2 — GYM-YJMG
+   Responsabilidad: layout y flujo. Delega lógica a hooks y subcomponentes.
+   ============================================================ */
+import { useState, useRef } from 'react'
+import { Plus } from 'lucide-react'
+import { useSessionStore } from '../../../stores/sessionStore'
+import { useActiveSession } from '../hooks/useActiveSession'
+import { SessionHeader } from './SessionHeader'
+import { ExerciseHeroCard } from './ExerciseHeroCard'
+import { SetTracker } from './SetTracker'
+import { RestTimer } from './RestTimer'
+import { NextExercisePeek } from './NextExercisePeek'
+import { ExerciseQueue } from './ExerciseQueue'
+import { SessionSummary } from './SessionSummary'
+import { SessionMotivation } from './SessionMotivation'
+import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
+import { BonusTrackPicker } from './BonusTrackPicker'
+import { showToast } from '../../../components/ui/Toast'
+import type { SessionSummaryData } from '../../../types/session'
+import './ActiveSessionView.css'
+
+export function ActiveSessionView() {
+  const exercises = useSessionStore((s) => s.exercises)
+  const currentIndex = useSessionStore((s) => s.currentExerciseIndex)
+  const sets = useSessionStore((s) => s.sets)
+  const dayLabel = useSessionStore((s) => s.dayLabel)
+  const status = useSessionStore((s) => s.status)
+  const clearSession = useSessionStore((s) => s.clearSession)
+  const startTimer = useSessionStore((s) => s.startTimer)
+
+  const { finishSession, navigateNext, navigatePrev, abortSession, addBonusExercise } = useActiveSession()
+
+  const [summaryData, setSummaryData] = useState<SessionSummaryData | null>(null)
+  const [showExitConfirm, setShowExitConfirm] = useState(false)
+  const [showFinishConfirm, setShowFinishConfirm] = useState(false)
+  const [showQueue, setShowQueue] = useState(false)
+  const [showBonusPicker, setShowBonusPicker] = useState(false)
+  const [showMotivation, setShowMotivation] = useState(false)
+  const [bonusUsed, setBonusUsed] = useState(false)
+
+  const currentExercise = exercises[currentIndex] ?? null
+  const nextExercise = exercises[currentIndex + 1] ?? null
+
+  const setsCompleted = currentExercise
+    ? (sets[currentExercise.routineExerciseId] ?? []).filter((s) => s.completedAt !== null).length
+    : 0
+
+  if (!currentExercise) return null
+
+  async function executeFinishSession() {
+    setShowFinishConfirm(false)
+    const summary = await finishSession()
+    if (summary) setSummaryData(summary)
+  }
+
+  function handleFinishSession() {
+    setShowFinishConfirm(true)
+  }
+
+  async function handleExitConfirmed() {
+    await abortSession()
+    setShowExitConfirm(false)
+  }
+
+  // Ref para disparar auto-avance desde el callback del timer sin closure stale
+  const autoAdvanceRef = useRef<(() => void) | null>(null)
+
+  /** Cuando termina el timer entre ejercicios → avanzar automáticamente */
+  function handleInterExerciseTimerFinish() {
+    autoAdvanceRef.current?.()
+    autoAdvanceRef.current = null
+  }
+
+  /**
+   * Al completar un set:
+   * - Si es el último set del ejercicio actual → usa restBetweenExercisesSeconds
+   *   y programa auto-avance al terminar.
+   * - Si NO es el último → usa restSeconds (descanso normal entre sets).
+   * - Si es el último set del ÚLTIMO ejercicio → no inicia timer.
+   */
+  function handleSetCompleted() {
+    const exId = currentExercise!.routineExerciseId
+    const allSets     = sets[exId] ?? []
+    const totalSets   = allSets.length
+    const nowDone     = allSets.filter((s) => s.completedAt !== null).length + 1 // +1 el que acaba de completarse
+    const isLastSet   = nowDone >= totalSets
+    const isLastEx    = currentIndex === exercises.length - 1
+
+    if (!isLastSet) {
+      // Descanso normal entre sets del mismo ejercicio
+      startTimer(currentExercise!.restSeconds)
+      return
+    }
+
+    if (isLastEx) {
+      // Último set del último ejercicio → no hay nada que avanzar
+      return
+    }
+
+    // Último set → descanso entre ejercicios + auto-avance al terminar
+    const interRest = currentExercise!.restBetweenExercisesSeconds ?? 120
+    autoAdvanceRef.current = navigateNext
+    startTimer(interRest)
+  }
+
+  async function handleBonusConfirm(exerciseId: string, exerciseName: string, targetSets: number) {
+    setShowBonusPicker(false)
+    await addBonusExercise(exerciseId, exerciseName, targetSets)
+    showToast(`${exerciseName} agregado a la sesión`, 'success')
+  }
+
+  const isLastExercise = currentIndex === exercises.length - 1
+
+  if (status === 'done' && showMotivation && summaryData) {
+    return (
+      <SessionMotivation
+        data={summaryData}
+        withBonus={bonusUsed}
+        onClose={clearSession}
+      />
+    )
+  }
+
+  if (status === 'done' && summaryData) {
+    return (
+      <SessionSummary
+        data={summaryData}
+        exercises={exercises}
+        onClose={() => setShowMotivation(true)}
+        onBonusAccepted={() => setBonusUsed(true)}
+      />
+    )
+  }
+
+  return (
+    <div className="active-session">
+      <SessionHeader
+        dayLabel={dayLabel}
+        currentIndex={currentIndex}
+        totalExercises={exercises.length}
+        onRequestExit={() => setShowExitConfirm(true)}
+        onToggleQueue={() => setShowQueue((v) => !v)}
+        queueOpen={showQueue}
+      />
+
+      <div className="active-session__content">
+        {showQueue ? (
+          <ExerciseQueue />
+        ) : (
+          <>
+            <ExerciseHeroCard
+              exercise={currentExercise}
+              setsCompleted={setsCompleted}
+            />
+
+            <RestTimer
+              defaultSeconds={currentExercise.restSeconds}
+              onFinish={handleInterExerciseTimerFinish}
+            />
+
+            <SetTracker
+              exercise={currentExercise}
+              onSetCompleted={handleSetCompleted}
+            />
+
+            {nextExercise && (
+              <NextExercisePeek
+                exercise={nextExercise}
+                onClick={navigateNext}
+              />
+            )}
+          </>
+        )}
+
+        <div className="active-session__nav">
+          {currentIndex > 0 && (
+            <button
+              className="active-session__nav-btn active-session__nav-btn--prev"
+              onClick={navigatePrev}
+            >
+              Anterior
+            </button>
+          )}
+
+          {isLastExercise ? (
+            <button
+              className="active-session__nav-btn active-session__nav-btn--finish"
+              onClick={handleFinishSession}
+              disabled={status === 'completing'}
+            >
+              {status === 'completing' ? 'Guardando...' : 'Finalizar'}
+            </button>
+          ) : (
+            <button
+              className="active-session__nav-btn active-session__nav-btn--next"
+              onClick={navigateNext}
+            >
+              Siguiente
+            </button>
+          )}
+        </div>
+
+        {/* Botón flotante Bonus Track */}
+        <button
+          className="active-session__bonus-btn"
+          onClick={() => setShowBonusPicker(true)}
+          aria-label="Agregar ejercicio extra"
+        >
+          <Plus size={18} />
+          <span>Agregar ejercicio</span>
+        </button>
+      </div>
+
+      <ConfirmDialog
+        isOpen={showExitConfirm}
+        title="Salir del entrenamiento"
+        message="Si sales ahora, los sets no guardados se perderán. ¿Continuar?"
+        confirmLabel="Salir"
+        variant="danger"
+        onConfirm={handleExitConfirmed}
+        onCancel={() => setShowExitConfirm(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={showFinishConfirm}
+        title="Finalizar Entrenamiento"
+        message="¿Estás seguro que deseas finalizar y guardar este entrenamiento?"
+        confirmLabel="Finalizar"
+        variant="primary"
+        onConfirm={executeFinishSession}
+        onCancel={() => setShowFinishConfirm(false)}
+      />
+
+      {showBonusPicker && (
+        <BonusTrackPicker
+          onConfirm={handleBonusConfirm}
+          onClose={() => setShowBonusPicker(false)}
+        />
+      )}
+    </div>
+  )
+}

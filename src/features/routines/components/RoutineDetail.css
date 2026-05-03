@@ -1,0 +1,180 @@
+.routine-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding-top: var(--space-4);
+}
+
+.routine-detail__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.routine-detail__title {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.routine-detail__subtitle {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+/* --- Day chips --- */
+.routine-detail__days-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.routine-detail__day-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.day-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.day-chip::after {
+  content: "";
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  transform: translateX(-50%);
+  transform-origin: 0 0;
+  scale: 0;
+  opacity: 0;
+  z-index: -1;
+  transition: all 0.48s 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.day-chip::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-md);
+  background-color: var(--color-primary);
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  opacity: 0;
+  scale: 0;
+  transform-origin: 0 0;
+  transition: all 0.48s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.day-chip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.day-chip--selected {
+  border-color: transparent;
+  color: var(--color-text-inverse);
+  scale: 1.05;
+}
+
+.day-chip--selected:hover {
+  color: var(--color-text-inverse);
+}
+
+.day-chip--selected::after {
+  bottom: -8px;
+  opacity: 1;
+  scale: 1;
+  box-shadow: 0 0 10px var(--color-primary-glow);
+}
+
+.day-chip--selected::before {
+  opacity: 1;
+  scale: 1;
+  top: 50%;
+  box-shadow: 0 0 15px var(--color-primary-glow);
+}
+
+.day-chip__remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  color: var(--color-text-tertiary);
+  transition: color var(--transition-fast);
+  cursor: pointer;
+}
+
+.day-chip__remove:hover {
+  color: var(--color-error);
+}
+
+.day-chip--selected .day-chip__remove {
+  color: var(--color-text-inverse);
+  opacity: 0.8;
+}
+
+.day-chip--selected .day-chip__remove:hover {
+  color: var(--color-bg-primary);
+  opacity: 1;
+}
+
+/* --- Add day select --- */
+.routine-detail__add-day {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.routine-detail__day-select {
+  appearance: none;
+  padding: var(--space-2) var(--space-6) var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-subtle);
+  border: 1px dashed var(--color-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.routine-detail__add-icon {
+  position: absolute;
+  right: var(--space-2);
+  pointer-events: none;
+  color: var(--color-primary);
+}
+
+.routine-detail__hint {
+  text-align: center;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+  padding: var(--space-8) 0;
+}

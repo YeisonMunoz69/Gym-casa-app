@@ -1,0 +1,86 @@
+/* NextExercisePeek.css — FASE 03 GYM-YJMG */
+
+.next-peek {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all var(--transition-base);
+  backdrop-filter: blur(var(--glass-blur));
+}
+
+.next-peek:hover {
+  background: var(--glass-bg-strong);
+  border-color: var(--color-border-hover);
+  transform: translateX(2px);
+}
+
+.next-peek__thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.next-peek__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.next-peek__icon {
+  color: var(--color-text-disabled);
+}
+
+.next-peek__info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.next-peek__label {
+  font-size: 10px;
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.next-peek__name {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.next-peek__muscle {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  text-transform: capitalize;
+}
+
+.next-peek__arrow {
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+
+.next-peek:hover .next-peek__arrow {
+  color: var(--color-primary);
+  transform: translateX(3px);
+}

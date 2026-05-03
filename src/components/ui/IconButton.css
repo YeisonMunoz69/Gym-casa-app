@@ -1,0 +1,63 @@
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.icon-btn:active:not(:disabled) {
+  transform: scale(0.9);
+}
+
+.icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* --- Sizes --- */
+.icon-btn--sm {
+  width: 32px;
+  height: 32px;
+}
+
+.icon-btn--md {
+  width: 40px;
+  height: 40px;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.icon-btn--lg {
+  width: 48px;
+  height: 48px;
+}
+
+/* --- Variants --- */
+.icon-btn--ghost:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.icon-btn--filled {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+}
+
+.icon-btn--filled:hover:not(:disabled) {
+  background: var(--color-primary-glow);
+}
+
+.icon-btn--outlined {
+  border: 1px solid var(--color-border);
+}
+
+.icon-btn--outlined:hover:not(:disabled) {
+  border-color: var(--color-border-hover);
+  background: var(--color-surface-hover);
+}

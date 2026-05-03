@@ -1,0 +1,122 @@
+/* ============================================================
+   RestTimerClock.css — Estilo del reloj digital de descanso
+   FASE 06 — GYM-YJMG
+   ============================================================ */
+
+.rest-clock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Header */
+.rest-clock__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.rest-clock__header-icon {
+  color: var(--color-primary);
+}
+
+.rest-clock__title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-primary);
+  flex: 1;
+}
+
+.rest-clock__saving {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}
+
+/* Display principal */
+.rest-clock__display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-3) var(--space-4);
+}
+
+/* Dígitos del reloj */
+.rest-clock__digits {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.rest-clock__time {
+  font-family: var(--font-mono);
+  font-size: 42px;
+  font-weight: var(--weight-bold);
+  color: var(--color-text-primary);
+  line-height: 1;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, var(--color-text-primary), var(--color-primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 8px hsla(168, 72%, 45%, 0.3));
+}
+
+.rest-clock__unit {
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Botones +/- */
+.rest-clock__btn {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-border);
+  background: var(--glass-bg);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.rest-clock__btn:not(:disabled):hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  box-shadow: 0 0 10px var(--color-primary-glow);
+}
+
+.rest-clock__btn:not(:disabled):active {
+  transform: scale(0.92);
+}
+
+.rest-clock__btn--plus:not(:disabled) {
+  border-color: hsla(168, 72%, 45%, 0.4);
+  color: var(--color-primary);
+  background: hsla(168, 72%, 45%, 0.08);
+}
+
+.rest-clock__btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Hint */
+.rest-clock__hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  text-align: center;
+  margin: 0;
+  line-height: 1.4;
+}

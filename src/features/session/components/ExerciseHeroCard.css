@@ -1,0 +1,154 @@
+/* ExerciseHeroCard.css — FASE 03 GYM-YJMG */
+
+.exercise-hero {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Imagen */
+.exercise-hero__image-wrap {
+  position: relative;
+  height: 200px;
+  background: var(--color-bg-secondary);
+  overflow: hidden;
+}
+
+.exercise-hero__image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  transition: transform var(--transition-slow);
+}
+
+.exercise-hero:hover .exercise-hero__image {
+  transform: scale(1.03);
+}
+
+.exercise-hero__image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-disabled);
+}
+
+/* Overlay gradient sobre la imagen */
+.exercise-hero__image-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 40%,
+    hsla(220, 20%, 8%, 0.85) 100%
+  );
+}
+
+.exercise-hero__image-meta {
+  position: absolute;
+  bottom: var(--space-3);
+  left: var(--space-4);
+}
+
+.exercise-hero__muscle {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary-glow);
+  border-radius: var(--radius-full);
+  padding: 2px var(--space-3);
+  text-transform: capitalize;
+}
+
+/* Body */
+.exercise-hero__body {
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.exercise-hero__name {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: var(--leading-tight);
+}
+
+/* Parámetros */
+.exercise-hero__params {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.exercise-hero__param {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.exercise-hero__param svg {
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+/* Contador de sets */
+.exercise-hero__param--sets {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.exercise-hero__sets-done {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-extrabold);
+  color: var(--color-primary);
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+
+.exercise-hero__sets-sep {
+  font-size: var(--text-xl);
+  color: var(--color-text-tertiary);
+  font-family: var(--font-mono);
+}
+
+.exercise-hero__sets-total {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+}
+
+.exercise-hero__sets-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin-left: var(--space-1);
+  align-self: flex-end;
+  margin-bottom: 2px;
+}
+
+/* Notas */
+.exercise-hero__notes {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  font-style: italic;
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  border-left: 2px solid var(--color-primary-glow);
+}

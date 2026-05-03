@@ -1,0 +1,101 @@
+/* ExerciseItem — Wrapper para ref de dnd-kit */
+.exercise-item-wrapper {
+  touch-action: none; /* Necesario para drag en mobile */
+}
+
+/* Handle de arrastre */
+.exercise-item__handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-disabled);
+  background: transparent;
+  border: none;
+  cursor: grab;
+  flex-shrink: 0;
+  transition: color var(--transition-fast);
+  padding: 0;
+}
+
+.exercise-item__handle:hover {
+  color: var(--color-text-secondary);
+}
+
+.exercise-item__handle:active {
+  cursor: grabbing;
+}
+
+
+.exercise-item__thumb {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  flex-shrink: 0;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    transform var(--transition-fast);
+  padding: 0;
+}
+
+.exercise-item__thumb:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+.exercise-item__thumb:active {
+  transform: scale(0.93);
+}
+
+.exercise-item__thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Placeholder cuando no hay imagen: pesa + icono upload superpuesto */
+.exercise-item__thumb-placeholder {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.exercise-item__upload-hint {
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.exercise-item__thumb:hover .exercise-item__upload-hint {
+  opacity: 1;
+}
+
+/* Input oculto */
+.exercise-item__file-input {
+  display: none;
+}
+
+.spin {
+  animation: ei-spin 700ms linear infinite;
+}
+
+@keyframes ei-spin {
+  to { transform: rotate(360deg); }
+}

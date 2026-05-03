@@ -1,0 +1,37 @@
+/* SetTracker.css — FASE 03 GYM-YJMG */
+
+.set-tracker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.set-tracker__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.set-tracker__header svg {
+  color: var(--color-primary);
+}
+
+.set-tracker__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.set-tracker__group-label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding-left: var(--space-1);
+}

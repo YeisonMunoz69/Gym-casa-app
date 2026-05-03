@@ -1,0 +1,207 @@
+/* ============================================================
+   AdminExerciseEditor.css — Estilos del editor admin
+   FASE 06 — GYM-YJMG
+   ============================================================ */
+
+.adm-editor-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;   /* sobre admin-screen (1000) y UserDetailPanel (1100) */
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: overlay-in var(--transition-fast) ease;
+}
+
+@keyframes overlay-in { from { opacity: 0 } to { opacity: 1 } }
+
+.adm-editor {
+  width: 100%;
+  max-width: 500px;
+  max-height: 90dvh;
+  overflow-y: auto;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-top: 2px solid var(--color-primary);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  animation: sheet-up var(--transition-base) cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes sheet-up { from { transform: translateY(100%) } to { transform: translateY(0) } }
+
+.adm-editor__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.adm-editor__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.adm-editor__badge {
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.1em;
+  color: var(--color-primary);
+  background: hsla(168, 72%, 45%, 0.12);
+  border: 1px solid hsla(168, 72%, 45%, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+}
+
+.adm-editor__title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.adm-editor__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  display: flex;
+  transition: color var(--transition-fast);
+}
+
+.adm-editor__close:hover { color: var(--color-text-primary); }
+
+/* Image picker */
+.adm-editor__image-picker {
+  width: 100%;
+  height: 130px;
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  background: var(--color-bg-tertiary);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.adm-editor__image-picker:hover {
+  border-color: var(--color-primary);
+  background: hsla(168, 72%, 45%, 0.05);
+}
+
+.adm-editor__image-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.adm-editor__image-ph {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+}
+
+/* Form */
+.adm-editor__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.adm-editor__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.adm-editor__label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-secondary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.adm-editor__input {
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color var(--transition-fast);
+}
+
+.adm-editor__input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px hsla(168, 72%, 45%, 0.12);
+}
+
+.adm-editor__input::placeholder { color: var(--color-text-tertiary); }
+
+.adm-editor__select { appearance: none; cursor: pointer; }
+
+.adm-editor__textarea { resize: none; line-height: 1.5; }
+
+/* Actions */
+.adm-editor__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-2);
+  gap: var(--space-3);
+}
+
+.adm-editor__actions-right {
+  display: flex;
+  gap: var(--space-3);
+  margin-left: auto;
+}
+
+.adm-editor__delete-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: hsl(0 70% 55%);
+  background: none;
+  border: 1px solid hsl(0 70% 55% / 0.3);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.adm-editor__delete-btn:hover {
+  background: hsl(0 70% 55% / 0.1);
+  border-color: hsl(0 70% 55%);
+}
+
+.adm-editor__delete-btn--confirm {
+  background: hsl(0 70% 55%);
+  color: #fff;
+  border-color: hsl(0 70% 55%);
+  animation: pulse-once 0.3s ease;
+}
+
+@keyframes pulse-once {
+  0%, 100% { transform: scale(1) }
+  50% { transform: scale(1.03) }
+}

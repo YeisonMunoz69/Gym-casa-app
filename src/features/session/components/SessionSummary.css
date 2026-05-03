@@ -1,0 +1,132 @@
+/* SessionSummary.css — FASE 03 GYM-YJMG */
+
+.session-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-6);
+  min-height: 100%;
+  background: var(--color-bg-primary);
+}
+
+/* Hero de victoria */
+.session-summary__hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+  margin-top: var(--space-8);
+}
+
+.session-summary__check-ring {
+  width: 96px;
+  height: 96px;
+  border-radius: var(--radius-full);
+  background: var(--color-success-glow);
+  border: 2px solid var(--color-success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-success);
+  animation: summary-pop 0.5s var(--transition-spring) forwards;
+  box-shadow: 0 0 32px var(--color-success-glow);
+}
+
+@keyframes summary-pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.session-summary__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-extrabold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.session-summary__day {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  margin: 0;
+}
+
+/* Grid de métricas */
+.session-summary__metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.session-summary__metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-4);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(var(--glass-blur));
+  text-align: center;
+}
+
+.session-summary__metric-icon {
+  color: var(--color-primary);
+}
+
+.session-summary__metric-value {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-extrabold);
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+
+.session-summary__metric-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  text-align: center;
+}
+
+/* Botón de cierre */
+/* Métrica relativa al peso corporal */
+.session-summary__relative {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary-glow);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  color: var(--color-primary);
+  margin: 0 var(--space-4);
+}
+
+.session-summary__relative strong {
+  font-weight: var(--weight-extrabold);
+  font-variant-numeric: tabular-nums;
+}
+
+.session-summary__close-btn {
+  width: 100%;
+  padding: var(--space-5) var(--space-6);
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: 0 4px 20px var(--color-primary-glow);
+  margin-top: auto;
+}
+
+.session-summary__close-btn:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+}

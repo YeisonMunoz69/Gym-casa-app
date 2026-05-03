@@ -1,0 +1,182 @@
+/* SetRow.css — FASE 03 GYM-YJMG */
+
+.set-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  transition: all var(--transition-base);
+}
+
+.set-row--completed {
+  background: var(--color-success-glow);
+  border-color: var(--color-success);
+  opacity: 0.75;
+}
+
+.set-row--warmup {
+  border-style: dashed;
+  opacity: 0.85;
+}
+
+/* Número de set */
+.set-row__number {
+  min-width: 28px;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-tertiary);
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.set-row__warmup-badge {
+  display: none; /* Se oculta el texto duplicado */
+}
+
+/* Inputs */
+.set-row__inputs {
+  display: flex;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+.set-row__field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.set-row__field-label {
+  font-size: 10px;
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+.set-row__input {
+  width: 100%;
+  padding: var(--space-2) var(--space-1);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  font-family: var(--font-mono);
+  text-align: center;
+  transition: border-color var(--transition-fast);
+  min-width: 0;
+  /* Quita flechas en inputs number */
+  -moz-appearance: textfield;
+}
+
+.set-row__input::-webkit-inner-spin-button,
+.set-row__input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+.set-row__input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-glow);
+}
+
+.set-row__input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.set-row__input--rir {
+  max-width: 52px;
+}
+
+/* Botón completar */
+.set-row__complete-btn {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  flex-shrink: 0;
+}
+
+.set-row__complete-btn:hover:not(:disabled) {
+  background: var(--color-success-glow);
+  border-color: var(--color-success);
+  color: var(--color-success);
+  transform: scale(1.1);
+}
+
+.set-row--completed .set-row__complete-btn {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: white;
+  cursor: default;
+}
+
+.set-row__complete-btn:disabled:not(.set-row--completed .set-row__complete-btn) {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Timer Wrapper */
+.set-row__time-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+.set-row__timer-btn {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+  margin-bottom: 2px;
+}
+
+.set-row__timer-btn:hover:not(:disabled) {
+  background: var(--color-bg-tertiary);
+}
+
+.set-row__timer-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.set-row__timer-btn.running {
+  background: var(--color-warning-glow);
+  color: var(--color-warning);
+  border-color: var(--color-warning);
+  animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+  0% { box-shadow: 0 0 0 0 var(--color-warning-glow); }
+  70% { box-shadow: 0 0 0 6px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
