@@ -41,13 +41,21 @@
   box-shadow: 0 0 10px var(--color-primary-glow);
 }
 
-/* Fila superior: toggle Frente/Espalda + chip Cardio */
+/* Fila superior: toggle Frente/Espalda + chips especiales */
 .body-map__top-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
   width: 100%;
+}
+
+/* Contenedor de botones de categoria especial (Cardio + Estirar) */
+.body-map__special-btns {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
 }
 
 /* Chip de Cardio flotante */
@@ -79,6 +87,37 @@
   border-color: hsl(38, 92%, 50%);
   color: hsl(38, 92%, 60%);
   box-shadow: 0 0 10px hsla(38, 92%, 50%, 0.3);
+}
+
+/* Chip de Estiramiento flotante */
+.body-map__stretch-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  font-family: var(--font-sans);
+  color: var(--color-text-secondary);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.body-map__stretch-btn:hover {
+  border-color: hsl(270, 70%, 65%);
+  color: hsl(270, 70%, 70%);
+  background: hsla(270, 70%, 60%, 0.08);
+}
+
+.body-map__stretch-btn--active {
+  background: hsla(270, 70%, 60%, 0.15);
+  border-color: hsl(270, 70%, 65%);
+  color: hsl(270, 70%, 70%);
+  box-shadow: 0 0 10px hsla(270, 70%, 60%, 0.3);
 }
 
 /* Efecto dimmed cuando Cardio está activo */

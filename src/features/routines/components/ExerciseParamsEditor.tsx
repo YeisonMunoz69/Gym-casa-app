@@ -77,16 +77,16 @@ export function ExerciseParamsEditor({ exercise, onSave, onClose }: ExercisePara
               onChange={(v) => updateField('target_time_seconds', v)} />
           )}
 
-          <NumberField label="Descanso (s)" value={values.rest_seconds} min={15} max={600} step={15}
+          <NumberField label="Descanso (s)" value={values.rest_seconds} min={5} max={600} step={5}
             onChange={(v) => updateField('rest_seconds', v)} />
         </div>
 
         <NumberField
           label="Descanso entre ejercicios (s)"
           value={values.rest_between_exercises_seconds}
-          min={30}
+          min={5}
           max={600}
-          step={15}
+          step={5}
           onChange={(v) => updateField('rest_between_exercises_seconds', v)}
         />
 

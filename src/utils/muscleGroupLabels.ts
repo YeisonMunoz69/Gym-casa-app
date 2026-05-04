@@ -40,6 +40,8 @@ const RAW_TO_ES: Record<string, string> = {
   'cuerpo completo': 'Cuerpo Completo', 'full body': 'Cuerpo Completo',
   // Bonificación
   bonificacion: 'Bonificacion', 'bonificación': 'Bonificacion',
+  // Estiramiento
+  estiramiento: 'Estiramiento', stretching: 'Estiramiento', stretch: 'Estiramiento', flexibility: 'Estiramiento', movilidad: 'Estiramiento', mobility: 'Estiramiento',
   // Otros
   arms: 'Brazos',
 }
@@ -66,6 +68,8 @@ export const MUSCLE_GROUP_OPTIONS = [
   'Cuello',
   'Cardio',
   'Cuerpo Completo',
+  'Estiramiento',
+  'Bonificacion',
 ] as const
 
 export type MuscleGroupOption = (typeof MUSCLE_GROUP_OPTIONS)[number]

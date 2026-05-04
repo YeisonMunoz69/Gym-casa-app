@@ -14,19 +14,24 @@ import './AddExerciseSheet.css'
 
 const PAGE_SIZE = 30
 
-/** Grupos musculares con valores en espanol e ingles */
+/** Grupos musculares con valores en espanol e ingles para filtros */
 const MUSCLE_GROUPS = [
-  { label: 'Pecho',       values: ['pecho', 'chest'] },
-  { label: 'Espalda',     values: ['espalda', 'back', 'lats'] },
-  { label: 'Trapecio',    values: ['trapecio', 'traps', 'trapezius'] },
-  { label: 'Hombros',    values: ['hombros', 'shoulders', 'deltoids'] },
-  { label: 'Biceps',     values: ['biceps', 'bicep'] },
-  { label: 'Triceps',    values: ['triceps', 'tricep'] },
-  { label: 'Piernas',    values: ['piernas', 'legs', 'quads', 'quadriceps', 'hamstrings'] },
-  { label: 'Gluteos',    values: ['gluteos', 'glutes'] },
-  { label: 'Abdomen',    values: ['abdomen', 'abs', 'abdominales', 'core'] },
-  { label: 'Pantorrilla', values: ['pantorrilla', 'calves'] },
-  { label: 'Cardio',     values: ['cardio'] },
+  { label: 'Pecho',         values: ['pecho', 'chest'] },
+  { label: 'Espalda',       values: ['espalda', 'back', 'lats'] },
+  { label: 'Trapecio',      values: ['trapecio', 'traps', 'trapezius'] },
+  { label: 'Hombros',      values: ['hombros', 'shoulders', 'deltoids'] },
+  { label: 'Biceps',       values: ['biceps', 'bicep'] },
+  { label: 'Triceps',      values: ['triceps', 'tricep'] },
+  { label: 'Antebrazos',   values: ['antebrazos', 'forearms'] },
+  { label: 'Piernas',      values: ['piernas', 'legs', 'quads', 'quadriceps', 'hamstrings', 'pierna'] },
+  { label: 'Gluteos',      values: ['gluteos', 'glutes'] },
+  { label: 'Abdomen',      values: ['abdomen', 'abs', 'abdominales', 'core'] },
+  { label: 'Pantorrilla',  values: ['pantorrilla', 'calves'] },
+  { label: 'Cuello',       values: ['cuello', 'neck'] },
+  { label: 'Cardio',       values: ['cardio'] },
+  { label: 'Cuerpo Completo', values: ['cuerpo completo', 'full body'] },
+  { label: 'Estiramiento', values: ['estiramiento', 'stretching', 'stretch', 'flexibility', 'movilidad', 'mobility'] },
+  { label: 'Bonificacion', values: ['bonificacion', 'bonificación'] },
 ]
 
 type AddExerciseSheetProps = {

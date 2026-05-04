@@ -2,22 +2,29 @@ import { useState } from 'react'
 import { Dumbbell, Plus, X, Image as ImageIcon, Info, Wrench } from 'lucide-react'
 import { IconButton } from '../../../components/ui/IconButton'
 import { ExerciseMediaUpload } from './ExerciseMediaUpload'
+import { AdminExerciseEditor } from '../../settings/components/AdminExerciseEditor'
 import type { ExerciseCatalogRow } from '../../../types/exercise'
 import { toSpanishMuscle } from '../../../utils/muscleGroupLabels'
+import { useUserRole } from '../../../utils/useUserRole'
 import './ExercisePreview.css'
 
 type ExercisePreviewProps = {
   exercise: ExerciseCatalogRow
   onAdd?: () => void
   onClose: () => void
+  onSaved?: () => void
 }
 
-export function ExercisePreview({ exercise, onAdd, onClose }: ExercisePreviewProps) {
+export function ExercisePreview({ exercise, onAdd, onClose, onSaved }: ExercisePreviewProps) {
+  const { role } = useUserRole()
+  const isSuperAdmin = role === 'super_admin'
+  
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(
     resolveMediaUrl(exercise),
   )
   const [imgFailed, setImgFailed] = useState(false)
   const [expandedInstructions, setExpandedInstructions] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
 
   function handleUpload(url: string) {
     setCurrentImageUrl(url)
@@ -32,12 +39,18 @@ export function ExercisePreview({ exercise, onAdd, onClose }: ExercisePreviewPro
     : instructions.slice(0, MAX_CHARS).trim() + '...'
 
   return (
-    <div className="preview-overlay" onClick={onClose}>
-      <div className="preview" onClick={(e) => e.stopPropagation()}>
-        <div className="preview__header">
-          <h3 className="preview__title">{exercise.name}</h3>
-          <IconButton icon={X} ariaLabel="Cerrar" size="sm" onClick={onClose} />
-        </div>
+    <>
+      <div className="preview-overlay" onClick={onClose}>
+        <div className="preview" onClick={(e) => e.stopPropagation()}>
+          <div className="preview__header">
+            <h3 className="preview__title">{exercise.name}</h3>
+            <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+              {isSuperAdmin && (
+                <IconButton icon={Wrench} ariaLabel="Editar" size="sm" onClick={() => setIsEditing(true)} />
+              )}
+              <IconButton icon={X} ariaLabel="Cerrar" size="sm" onClick={onClose} />
+            </div>
+          </div>
 
         <div className="preview__media">
           {currentImageUrl && !imgFailed ? (
@@ -105,8 +118,20 @@ export function ExercisePreview({ exercise, onAdd, onClose }: ExercisePreviewPro
           </div>
         </button>
       )}
-    </div>
-    </div>
+      </div>
+      </div>
+      {isEditing && (
+        <AdminExerciseEditor
+          exercise={exercise}
+          canDelete={isSuperAdmin}
+          onClose={() => setIsEditing(false)}
+          onSaved={() => {
+            setIsEditing(false)
+            if (onSaved) onSaved()
+          }}
+        />
+      )}
+    </>
   )
 }
 

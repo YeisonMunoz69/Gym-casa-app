@@ -7,7 +7,7 @@
 import { useRef, useEffect, useState } from 'react'
 import { BodyChart, ViewSide } from 'body-muscles'
 import type { BodyState } from 'body-muscles'
-import { Zap } from 'lucide-react'
+import { Zap, Waves } from 'lucide-react'
 import './BodyMap.css'
 
 export type BodyMuscle = string
@@ -36,8 +36,11 @@ export const BODY_MUSCLE_SEARCH: Record<string, string[]> = {
   gluteals: ['glutes', 'gluteos'],
   calves: ['calves', 'pantorrilla', 'soleus'],
   forearms: ['forearms', 'antebrazos', 'arms'],
+  neck: ['cuello', 'neck'],
   // Cardio: no es un músculo del mapa pero se incluye como filtro especial
   cardio: ['cardio', 'cardiovascular', 'hiit', 'aerobic'],
+  // Estiramiento: categoría funcional, no anatómica
+  estiramiento: ['estiramiento', 'stretching', 'stretch', 'flexibility', 'movilidad', 'mobility'],
 }
 
 const MUSCLE_NAMES: Record<string, string> = {
@@ -55,6 +58,7 @@ const MUSCLE_NAMES: Record<string, string> = {
   gluteals: 'Glúteos',
   calves: 'Pantorrillas',
   forearms: 'Antebrazos',
+  neck: 'Cuello',
 }
 
 const GROUP_MAPPING: Record<string, string[]> = {
@@ -72,6 +76,7 @@ const GROUP_MAPPING: Record<string, string[]> = {
   gluteals: ["gluteus-medius-left", "gluteus-maximus-left", "gluteus-medius-right", "gluteus-maximus-right"],
   calves: ["calves-gastroc-medial-left", "calves-gastroc-lateral-left", "calves-soleus-left", "calves-gastroc-medial-right", "calves-gastroc-lateral-right", "calves-soleus-right", "tibialis-anterior-left", "tibialis-anterior-right"],
   forearms: ["forearm-left", "forearm-right", "forearm-flexors-left", "forearm-extensors-left", "forearm-flexors-right", "forearm-extensors-right"],
+  neck: ["head", "face", "neck-right", "neck-left", "head-back", "nape"],
 }
 
 function getBaseGroup(id: string): string | null {
@@ -147,6 +152,7 @@ export function BodyMap({ selected, onSelect }: BodyMapProps) {
   const displayLabel = displayGroup ? MUSCLE_NAMES[displayGroup] : ''
 
   const isCardio = selected === 'cardio'
+  const isEstiramiento = selected === 'estiramiento'
 
   return (
     <div className="body-map">
@@ -156,36 +162,47 @@ export function BodyMap({ selected, onSelect }: BodyMapProps) {
           <button
             type="button"
             className={`body-map__toggle-btn ${view === 'front' ? 'body-map__toggle-btn--active' : ''}`}
-            onClick={() => { setView('front'); if (isCardio) onSelect(null) }}
+            onClick={() => { setView('front'); if (isCardio || isEstiramiento) onSelect(null) }}
           >
             Frente
           </button>
           <button
             type="button"
             className={`body-map__toggle-btn ${view === 'back' ? 'body-map__toggle-btn--active' : ''}`}
-            onClick={() => { setView('back'); if (isCardio) onSelect(null) }}
+            onClick={() => { setView('back'); if (isCardio || isEstiramiento) onSelect(null) }}
           >
             Espalda
           </button>
         </div>
 
-        {/* Botón flotante Cardio */}
-        <button
-          type="button"
-          className={`body-map__cardio-btn ${isCardio ? 'body-map__cardio-btn--active' : ''}`}
-          onClick={() => onSelect(isCardio ? null : 'cardio')}
-          title="Filtrar ejercicios de cardio"
-        >
-          <Zap size={13} />
-          Cardio
-        </button>
+        {/* Botones flotantes: Cardio y Estiramiento */}
+        <div className="body-map__special-btns">
+          <button
+            type="button"
+            className={`body-map__cardio-btn ${isCardio ? 'body-map__cardio-btn--active' : ''}`}
+            onClick={() => onSelect(isCardio ? null : 'cardio')}
+            title="Filtrar ejercicios de cardio"
+          >
+            <Zap size={13} />
+            Cardio
+          </button>
+          <button
+            type="button"
+            className={`body-map__stretch-btn ${isEstiramiento ? 'body-map__stretch-btn--active' : ''}`}
+            onClick={() => onSelect(isEstiramiento ? null : 'estiramiento')}
+            title="Filtrar ejercicios de estiramiento"
+          >
+            <Waves size={13} />
+            Estirar
+          </button>
+        </div>
       </div>
 
-      {/* Mapa anatómico — se opaca al seleccionar Cardio */}
-      <div className={`body-map__canvas ${isCardio ? 'body-map__canvas--dimmed' : ''}`}>
+      {/* Mapa anatómico — se opaca al seleccionar categorías especiales */}
+      <div className={`body-map__canvas ${(isCardio || isEstiramiento) ? 'body-map__canvas--dimmed' : ''}`}>
         <div ref={containerRef} className="svg-wrapper" />
         <p className="body-map__selected-label">
-          {isCardio ? 'Cardio / Aeróbico' : displayLabel}
+          {isCardio ? 'Cardio / Aeróbico' : isEstiramiento ? 'Estiramiento / Movilidad' : displayLabel}
         </p>
       </div>
     </div>

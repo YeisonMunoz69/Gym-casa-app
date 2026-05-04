@@ -11,8 +11,11 @@ import type { ExerciseCatalogRow } from '../../../types/exercise'
 import './CreateExerciseForm.css'
 
 const MUSCLE_GROUPS = [
-  'Chest', 'Back', 'Traps', 'Shoulders', 'Biceps', 'Triceps',
-  'Legs', 'Glutes', 'Abs', 'Calves', 'Cardio',
+  'Pecho', 'Espalda', 'Trapecio', 'Hombros',
+  'Biceps', 'Triceps', 'Antebrazos',
+  'Piernas', 'Gluteos', 'Abdomen', 'Pantorrilla',
+  'Cuello', 'Cardio', 'Cuerpo Completo',
+  'Estiramiento', 'Bonificacion',
 ]
 
 type CreateExerciseFormProps = {

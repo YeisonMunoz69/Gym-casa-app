@@ -15,25 +15,29 @@ import { ProgressByExercise } from '../dashboard/components/ProgressByExercise'
 import { BodyMap, BODY_MUSCLE_SEARCH } from '../routines/components/BodyMap'
 import type { BodyMuscle } from '../routines/components/BodyMap'
 import { ExercisePreview } from '../routines/components/ExercisePreview'
-import { AddExerciseDialog } from './AddExerciseDialog'
+import { CreateExerciseForm } from '../routines/components/CreateExerciseForm'
 import type { ExerciseCatalogRow } from '../../types/exercise'
 import { toSpanishMuscle } from '../../utils/muscleGroupLabels'
 import './CatalogScreen.css'
 
 const PAGE_SIZE = 15
 const MUSCLE_GROUPS = [
-  { label: 'Pecho',       values: ['pecho', 'chest'] },
-  { label: 'Espalda',     values: ['espalda', 'back', 'lats'] },
-  { label: 'Trapecio',    values: ['trapecio', 'traps', 'trapezius'] },
-  { label: 'Hombros',    values: ['hombros', 'shoulders', 'deltoids'] },
-  { label: 'Biceps',     values: ['biceps', 'bicep'] },
-  { label: 'Triceps',    values: ['triceps', 'tricep'] },
-  { label: 'Piernas',    values: ['piernas', 'legs', 'quads', 'quadriceps', 'hamstrings'] },
-  { label: 'Gluteos',    values: ['gluteos', 'glutes'] },
-  { label: 'Abdomen',    values: ['abdomen', 'abs', 'abdominales', 'core'] },
-  { label: 'Pantorrilla', values: ['pantorrilla', 'calves'] },
-  { label: 'Cardio',      values: ['cardio'] },
-  { label: 'Bonificacion', values: ['bonificacion'] },
+  { label: 'Pecho',         values: ['pecho', 'chest'] },
+  { label: 'Espalda',       values: ['espalda', 'back', 'lats'] },
+  { label: 'Trapecio',      values: ['trapecio', 'traps', 'trapezius'] },
+  { label: 'Hombros',       values: ['hombros', 'shoulders', 'deltoids'] },
+  { label: 'Biceps',        values: ['biceps', 'bicep'] },
+  { label: 'Triceps',       values: ['triceps', 'tricep'] },
+  { label: 'Antebrazos',    values: ['antebrazos', 'forearms'] },
+  { label: 'Piernas',       values: ['piernas', 'legs', 'quads', 'quadriceps', 'hamstrings', 'pierna'] },
+  { label: 'Gluteos',       values: ['gluteos', 'glutes'] },
+  { label: 'Abdomen',       values: ['abdomen', 'abs', 'abdominales', 'core'] },
+  { label: 'Pantorrilla',   values: ['pantorrilla', 'calves'] },
+  { label: 'Cuello',        values: ['cuello', 'neck'] },
+  { label: 'Cardio',        values: ['cardio'] },
+  { label: 'Cuerpo Completo', values: ['cuerpo completo', 'full body'] },
+  { label: 'Estiramiento',  values: ['estiramiento', 'stretching', 'stretch', 'flexibility', 'movilidad', 'mobility'] },
+  { label: 'Bonificacion',  values: ['bonificacion', 'bonificación'] },
 ]
 
 function CatalogItem({ exercise, onClick }: { exercise: ExerciseCatalogRow; onClick: () => void }) {
@@ -219,15 +223,18 @@ export function CatalogScreen() {
         <ExercisePreview
           exercise={previewExercise}
           onClose={() => setPreviewExercise(null)}
+          onSaved={() => {
+            reload?.()
+            setPreviewExercise(null)
+          }}
         />
       )}
 
-      {showAddDialog && (
-        <AddExerciseDialog
-          onClose={() => setShowAddDialog(false)}
-          onCreated={() => { reload?.(); setShowAddDialog(false) }}
-        />
-      )}
+      <CreateExerciseForm
+        isOpen={showAddDialog}
+        onClose={() => setShowAddDialog(false)}
+        onCreated={() => { reload?.(); setShowAddDialog(false) }}
+      />
     </div>
   )
 }

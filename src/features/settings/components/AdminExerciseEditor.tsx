@@ -120,7 +120,7 @@ export function AdminExerciseEditor({ exercise, canDelete = false, onClose, onSa
             <span className="adm-editor__label">Grupo muscular *</span>
             <select className="adm-editor__input adm-editor__select" value={muscleGroup}
               onChange={(e) => setMuscleGroup(e.target.value)} required>
-              <option value="Bonificacion">Bonificacion</option>
+              <option value="">Seleccione un grupo...</option>
               {MUSCLE_GROUP_OPTIONS.map((mg) => <option key={mg} value={mg}>{mg}</option>)}
             </select>
           </label>
@@ -148,7 +148,7 @@ export function AdminExerciseEditor({ exercise, canDelete = false, onClose, onSa
             )}
             <div className="adm-editor__actions-right">
               <Button variant="ghost" size="sm" onClick={onClose} disabled={saving}>Cancelar</Button>
-              <Button variant="primary" size="sm" disabled={!name.trim() || saving}>
+              <Button type="submit" variant="primary" size="sm" disabled={!name.trim() || saving}>
                 {saving ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear ejercicio'}
               </Button>
             </div>
