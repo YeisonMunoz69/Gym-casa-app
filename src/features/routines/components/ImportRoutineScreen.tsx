@@ -113,7 +113,9 @@ export function ImportRoutineScreen() {
                   <Dumbbell size={14} className="import-day__icon" />
                   <span>{ex.exerciseName}</span>
                   <span className="import-day__sets">
-                    {ex.targetSets} × {ex.repMin}–{ex.repMax} reps
+                    {ex.isTimeBased
+                      ? `${ex.targetSets} × ${ex.targetTimeSeconds}s`
+                      : `${ex.targetSets} × ${ex.repMin}–${ex.repMax} reps`}
                   </span>
                 </li>
               ))}
@@ -143,6 +145,14 @@ export function ImportRoutineScreen() {
           Importar rutina
         </Button>
       </div>
+
+      {/* Overlay de carga SKILL-DESIGN §2.1 — cubre pantalla durante importación */}
+      {importing && (
+        <div className="loading-overlay">
+          <HamsterLoader size={120} />
+          <span className="loading-fullscreen__label">Importando rutina...</span>
+        </div>
+      )}
     </div>
   )
 }

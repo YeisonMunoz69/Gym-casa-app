@@ -201,26 +201,56 @@ async function resolveExerciseId(
   userId: string,
   ex: SharedDayPayload['exercises'][number],
 ): Promise<string> {
+  // 1. El ejercicio existe en el catálogo público/global → reusar
   const { data: found } = await supabase
     .from('exercises_catalog')
     .select('id')
     .eq('id', ex.exerciseId)
-    .single()
+    .maybeSingle()   // maybeSingle: no lanza error si no existe
 
-  if (found) return found.id as string
+  if (found?.id) return found.id as string
 
-  const { data: cloned } = await supabase
+  // 2. El ejercicio es personalizado (del exportador) → buscar por nombre
+  //    para no duplicar si ya fue importado antes
+  const { data: byName } = await supabase
+    .from('exercises_catalog')
+    .select('id')
+    .ilike('name', ex.exerciseName)
+    .eq('source', 'imported')
+    .maybeSingle()
+
+  if (byName?.id) return byName.id as string
+
+  // 3. Clonar el ejercicio con todos los campos mínimos requeridos
+  const { data: cloned, error: cloneErr } = await supabase
     .from('exercises_catalog')
     .insert({
       name: ex.exerciseName,
-      muscle_group: ex.muscleGroup,
-      equipment: ex.equipment,
-      image_url: ex.imageUrl,
+      muscle_group: ex.muscleGroup ?? 'general',
+      equipment: ex.equipment ?? null,
+      image_url: ex.imageUrl ?? null,
       source: 'imported',
       created_by: userId,
     })
     .select('id')
     .single()
 
-  return (cloned?.id ?? ex.exerciseId) as string
+  if (cloned?.id) return cloned.id as string
+
+  // 4. Fallback final: crear placeholder mínimo garantizado
+  console.error('[resolveExerciseId] clone failed:', cloneErr?.message)
+  const { data: placeholder } = await supabase
+    .from('exercises_catalog')
+    .insert({
+      name: ex.exerciseName,
+      muscle_group: 'general',
+      source: 'imported',
+      created_by: userId,
+    })
+    .select('id')
+    .single()
+
+  // Si incluso el placeholder falla, retornar string vacío y dejar que
+  // la UI lo maneje con el null-guard en ExerciseItem
+  return (placeholder?.id ?? '') as string
 }

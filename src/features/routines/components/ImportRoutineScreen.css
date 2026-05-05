@@ -158,3 +158,5 @@
 .import-screen__actions > * {
   flex: 1;
 }
+
+/* Overlay de carga: ver global.css .loading-overlay */

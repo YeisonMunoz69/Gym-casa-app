@@ -5,11 +5,13 @@
      URL con ?share=UUID  → fetchRoutineSnapshot (nuevo)
      URL con ?r=BASE64    → decodeBase64ToPayload (legacy)
      Base64 directo       → decodeBase64ToPayload (fallback)
+   Fix: botón "Abrir cámara" con capture="environment" para móvil.
    Límite: 150 líneas — SKILL-CODE §2.4
    ============================================================ */
 import { useRef, useState } from 'react'
 import jsQR from 'jsqr'
-import { ScanLine, X, Upload, Loader2 } from 'lucide-react'
+import { ScanLine, X, Upload, Camera, Loader2 } from 'lucide-react'
+import { HamsterLoader } from '../../../components/ui/HamsterLoader'
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
 import { Button } from '../../../components/ui/Button'
 import { showToast } from '../../../components/ui/Toast'
@@ -29,7 +31,8 @@ type QrScannerDialogProps = {
 }
 
 export function QrScannerDialog({ onClose, onImported }: QrScannerDialogProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const galleryRef = useRef<HTMLInputElement>(null)
+  const cameraRef  = useRef<HTMLInputElement>(null)
   const userId = useAuthStore((s) => s.user?.id)
 
   const [scannedPayload, setScannedPayload] = useState<SharedRoutinePayload | null>(null)
@@ -48,7 +51,7 @@ export function QrScannerDialog({ onClose, onImported }: QrScannerDialogProps) {
     e.target.value = ''
 
     if (!rawQrData) {
-      setScanError('No se encontró ningún QR en la imagen. Asegúrate de que sea visible y esté bien iluminado.')
+      setScanError('No se encontró el QR en la imagen. Asegúrate de que el código esté bien visible y bien iluminado.')
       return
     }
 
@@ -57,14 +60,15 @@ export function QrScannerDialog({ onClose, onImported }: QrScannerDialogProps) {
       setScanError(resolved.error ?? 'Formato de QR no reconocido')
       return
     }
-
     setScannedPayload(resolved.payload)
   }
 
   async function handleConfirmImport() {
     if (!scannedPayload || !userId) return
+    const payloadToImport = scannedPayload
+    setScannedPayload(null) // Cierra el ConfirmDialog — el overlay toma el relevo
     setImporting(true)
-    const { error } = await importSharedRoutine(userId, scannedPayload)
+    const { error } = await importSharedRoutine(userId, payloadToImport)
     setImporting(false)
     if (error) { showToast(`Error al importar: ${error}`, 'error'); return }
     showToast('Rutina importada correctamente', 'success')
@@ -86,38 +90,62 @@ export function QrScannerDialog({ onClose, onImported }: QrScannerDialogProps) {
           </div>
 
           <div className="qr-scanner__body">
-            <div className="qr-scanner__frame" onClick={() => !scanning && fileInputRef.current?.click()}>
+            {/* Área central de estado */}
+            <div className="qr-scanner__frame">
               {scanning
                 ? <Loader2 size={48} className="qr-scanner__icon qr-scanner__icon--spinning" />
                 : <ScanLine size={56} className="qr-scanner__icon" />
               }
               <p className="qr-scanner__hint">
-                {scanning ? 'Leyendo código QR...' : 'Toca para abrir cámara o galería'}
+                {scanning ? 'Leyendo código QR...' : 'Elige una opción para escanear'}
               </p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={handleFileChange}
-              />
             </div>
 
             {scanError && <p className="qr-scanner__error">{scanError}</p>}
 
-            <Button
-              variant="secondary"
-              size="md"
-              fullWidth
-              loading={scanning}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload size={16} />
-              {scanning ? 'Procesando...' : 'Seleccionar imagen del QR'}
-            </Button>
+            {/* Inputs ocultos — uno por modalidad */}
+            <input
+              ref={cameraRef}
+              type="file"
+              accept="image/*"
+              capture="environment"   /* Abre cámara trasera directamente */
+              hidden
+              onChange={handleFileChange}
+            />
+            <input
+              ref={galleryRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={handleFileChange}
+            />
+
+            {/* Botones de acceso — cámara + galería */}
+            <div className="qr-scanner__btn-row">
+              <Button
+                variant="primary"
+                size="md"
+                fullWidth
+                loading={scanning}
+                onClick={() => cameraRef.current?.click()}
+              >
+                <Camera size={16} />
+                Abrir cámara
+              </Button>
+              <Button
+                variant="secondary"
+                size="md"
+                fullWidth
+                loading={scanning}
+                onClick={() => galleryRef.current?.click()}
+              >
+                <Upload size={16} />
+                Desde galería
+              </Button>
+            </div>
 
             <p className="qr-scanner__tip">
-              Tip: haz captura de pantalla del QR y cárgala aquí para mejores resultados
+              Tip: si la cámara no lee el QR, usa "Desde galería" con una captura de pantalla del código.
             </p>
           </div>
         </div>
@@ -134,6 +162,14 @@ export function QrScannerDialog({ onClose, onImported }: QrScannerDialogProps) {
           onCancel={() => setScannedPayload(null)}
         />
       )}
+
+      {/* Overlay de carga SKILL-DESIGN §2.1 — cubre pantalla completa al importar */}
+      {importing && (
+        <div className="loading-overlay">
+          <HamsterLoader size={120} />
+          <span className="loading-fullscreen__label">Importando rutina...</span>
+        </div>
+      )}
     </>
   )
 }
@@ -147,7 +183,6 @@ async function resolvePayloadFromQrData(
     const url = new URL(rawData)
     const shareId = url.searchParams.get('share')
     if (shareId) return fetchRoutineSnapshot(shareId)
-
     const base64 = url.searchParams.get('r')
     if (base64) return decodeBase64ToPayload(base64)
   } catch {
@@ -167,7 +202,7 @@ function buildImportMessage(payload: SharedRoutinePayload, total: number): strin
 }
 
 async function decodeQrFromFile(file: File): Promise<string | null> {
-  const MAX_SIZE = 1024
+  const MAX_SIZE = 1200
   return new Promise((resolve) => {
     const objectUrl = URL.createObjectURL(file)
     const img = new Image()

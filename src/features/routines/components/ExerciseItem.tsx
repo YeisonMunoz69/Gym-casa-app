@@ -20,6 +20,29 @@ type ExerciseItemProps = {
 
 export function ExerciseItem({ row, index, onRemove, onEdit }: ExerciseItemProps) {
   const userId = useAuthStore((s) => s.user?.id)
+
+  // Guard defensivo: si el JOIN devuelve null (ejercicio huérfano tras importación),
+  // mostrar un placeholder visual en lugar de crashear la app.
+  if (!row.exercise) {
+    return (
+      <div className="exercise-item-wrapper">
+        <Card variant="default" padding="sm" className="exercise-item">
+          <div className="exercise-item__index">{index + 1}</div>
+          <div className="exercise-item__thumb exercise-item__thumb--placeholder">
+            <Dumbbell size={14} />
+          </div>
+          <div className="exercise-item__info">
+            <span className="exercise-item__name" style={{ color: 'var(--color-text-disabled)' }}>
+              Ejercicio no encontrado
+            </span>
+            <span className="exercise-item__meta">ID huérfano — puede eliminarse</span>
+          </div>
+          <IconButton icon={Trash2} size="sm" variant="ghost" ariaLabel="Eliminar" onClick={onRemove} />
+        </Card>
+      </div>
+    )
+  }
+
   const isTimeBased = row.is_time_based
   const params = isTimeBased
     ? `${row.target_sets}x ${row.target_time_seconds}s`
