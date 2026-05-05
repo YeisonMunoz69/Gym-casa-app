@@ -108,8 +108,8 @@
   transform-origin: center center;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: var(--color-text-secondary);
-  /* Para mover el icono mas al centro y que quede centrado con el resto de la tarjeta */
-  margin-left: 20px;
+  /* Ajuste a la izquierda */
+  margin-left: 7px;
   /* Para aumentar el tamaño del icono */
   margin-top: 100px;
   margin-bottom: 100px;
@@ -122,6 +122,8 @@
   justify-content: space-between;
   margin-left: 36px; /* Deja espacio para el ícono absoluto (24px) + gap (12px) */
   transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 0; /* Permite que flex-child se comprima */
+  gap: var(--space-2);
 }
 
 /* --- Efecto Hover Centrado --- */
@@ -162,17 +164,44 @@
   opacity: 0;
 }
 
+
 .routine-card__info {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+  min-width: 0; /* Permite truncar el texto */
+  flex: 1;
 }
 
+
+/* Wrapper que recorta el texto desbordante */
+.routine-card__name-wrapper {
+  overflow: hidden;
+  width: 100%;
+  padding-left: var(--space-6);
+}
+
+/* Nombre: siempre en una línea, sin recorte propio */
 .routine-card__name {
-  font-size: var(--text-2xl);
+  font-size: var(--text-xl);
   font-weight: var(--weight-semibold);
   color: var(--color-text-primary);
-  padding-left: var(--space-6);
+  white-space: nowrap;
+  display: inline-block;
+  will-change: transform;
+}
+
+/* Clase activa solo cuando el texto mide más que el wrapper */
+.routine-card__name--marquee {
+  animation: routine-name-marquee 7s ease-in-out infinite;
+}
+
+@keyframes routine-name-marquee {
+  0%,
+  22% { transform: translateX(0); }          /* Pausa inicial */
+  58%,
+  82% { transform: translateX(var(--marquee-offset, 0px)); } /* Slide al final */
+  100% { transform: translateX(0); }          /* Regreso */
 }
 
 .routine-card__days {
@@ -198,7 +227,8 @@
 
 .routine-card__chevron {
   color: var(--color-text-tertiary);
-  flex-shrink: 0;
+  flex-shrink: 0; /* Nunca se comprime — siempre visible */
+  margin-left: auto; /* Se mantiene pegado a la derecha */
 }
 
 .routine-card__actions {

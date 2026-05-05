@@ -1,3 +1,4 @@
+import { useRef, useEffect, useState } from 'react'
 import { Trash2, ChevronRight, Dumbbell, Copy } from 'lucide-react'
 import { Card } from '../../../components/ui/Card'
 import { WEEKDAY_SHORT } from '../../../types/routine'
@@ -11,10 +12,48 @@ type RoutineCardProps = {
   onDuplicate: () => void
 }
 
+/** Mide si el texto del nombre desborda su contenedor y calcula el offset del marquee */
+function useNameMarquee() {
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const nameRef    = useRef<HTMLSpanElement>(null)
+  const [isOverflowing, setIsOverflowing]   = useState(false)
+  const [marqueeOffset, setMarqueeOffset]   = useState(0)
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current
+    const name    = nameRef.current
+    if (!wrapper || !name) return
+
+    function measure() {
+      const overflow = name!.scrollWidth - wrapper!.clientWidth
+      if (overflow > 4) {
+        setIsOverflowing(true)
+        setMarqueeOffset(overflow)
+      } else {
+        setIsOverflowing(false)
+        setMarqueeOffset(0)
+      }
+    }
+
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(wrapper)
+    return () => observer.disconnect()
+  }, [])
+
+  return { wrapperRef, nameRef, isOverflowing, marqueeOffset }
+}
+
 export function RoutineCard({ routine, onSelect, onDelete, onToggle, onDuplicate }: RoutineCardProps) {
+  const { wrapperRef, nameRef, isOverflowing, marqueeOffset } = useNameMarquee()
+
   const dayChips = routine.routine_days
     .sort((a, b) => a.weekday - b.weekday)
     .map((d) => WEEKDAY_SHORT[d.weekday])
+
+  const nameStyle = isOverflowing
+    ? ({ '--marquee-offset': `-${marqueeOffset}px` } as React.CSSProperties)
+    : undefined
 
   return (
     <Card variant="glass" padding="none" className="routine-card">
@@ -28,7 +67,15 @@ export function RoutineCard({ routine, onSelect, onDelete, onToggle, onDuplicate
 
         <div className="routine-card__content">
           <div className="routine-card__info">
-            <span className="routine-card__name">{routine.name}</span>
+            <div ref={wrapperRef} className="routine-card__name-wrapper">
+              <span
+                ref={nameRef}
+                className={`routine-card__name${isOverflowing ? ' routine-card__name--marquee' : ''}`}
+                style={nameStyle}
+              >
+                {routine.name}
+              </span>
+            </div>
             <div className="routine-card__days">
               {dayChips.length > 0
                 ? dayChips.map((label) => (
@@ -40,18 +87,19 @@ export function RoutineCard({ routine, onSelect, onDelete, onToggle, onDuplicate
           <ChevronRight size={18} className="routine-card__chevron" />
         </div>
       </button>
+
       <div className="routine-card__actions">
         <div>
-          <input 
-            className="routine-switch__input" 
-            id={`switch-${routine.id}`} 
-            type="checkbox" 
+          <input
+            className="routine-switch__input"
+            id={`switch-${routine.id}`}
+            type="checkbox"
             checked={routine.is_active}
             onChange={onToggle}
           />
-          <label 
-            className="routine-switch" 
-            htmlFor={`switch-${routine.id}`} 
+          <label
+            className="routine-switch"
+            htmlFor={`switch-${routine.id}`}
             aria-label={routine.is_active ? 'Desactivar rutina' : 'Activar rutina'}
             title={routine.is_active ? 'Desactivar rutina' : 'Activar rutina'}
           >
@@ -65,10 +113,7 @@ export function RoutineCard({ routine, onSelect, onDelete, onToggle, onDuplicate
           className="routine-clone-btn"
           aria-label="Duplicar rutina"
           title="Duplicar rutina"
-          onClick={(e) => {
-            e.stopPropagation()
-            onDuplicate()
-          }}
+          onClick={(e) => { e.stopPropagation(); onDuplicate() }}
         >
           <Copy strokeWidth={2.5} />
         </button>
@@ -77,10 +122,7 @@ export function RoutineCard({ routine, onSelect, onDelete, onToggle, onDuplicate
           className="routine-delete-btn"
           aria-label="Eliminar rutina"
           title="Eliminar rutina"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
+          onClick={(e) => { e.stopPropagation(); onDelete() }}
         >
           <Trash2 strokeWidth={2.5} />
         </button>
@@ -88,4 +130,3 @@ export function RoutineCard({ routine, onSelect, onDelete, onToggle, onDuplicate
     </Card>
   )
 }
-

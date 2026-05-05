@@ -1,6 +1,8 @@
 /* ExerciseItem — Wrapper para ref de dnd-kit */
 .exercise-item-wrapper {
-  touch-action: none; /* Necesario para drag en mobile */
+  /* touch-action: pan-y permite scroll vertical normal en todo el ítem.
+     El bloqueo de scroll solo aplica al handle (ver abajo). */
+  touch-action: pan-y;
 }
 
 /* Handle de arrastre */
@@ -8,8 +10,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 44px;      /* Mínimo táctil 44px — SKILL-DESIGN §9.1 */
+  height: 44px;
   border-radius: var(--radius-sm);
   color: var(--color-text-disabled);
   background: transparent;
@@ -18,6 +20,8 @@
   flex-shrink: 0;
   transition: color var(--transition-fast);
   padding: 0;
+  /* Solo el ícono de arrastre bloquea el scroll táctil */
+  touch-action: none;
 }
 
 .exercise-item__handle:hover {

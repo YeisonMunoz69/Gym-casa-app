@@ -1,7 +1,9 @@
 /* ============================================================
    ImportRoutineScreen.tsx — Pantalla de importación via QR link
-   FASE 05.5 — GYM-YJMG
-   Responsabilidad: decodificar payload de URL, preview, confirmar import.
+   FASE 05.5 v3 — GYM-YJMG
+   Soporta:
+     ?share=UUID  → descarga snapshot de shared_routines (nuevo)
+     ?r=BASE64    → decodifica payload legacy (retrocompatibilidad)
    Límite: 150 líneas — SKILL-CODE §2.4
    ============================================================ */
 import { useEffect, useState } from 'react'
@@ -12,6 +14,7 @@ import { Button } from '../../../components/ui/Button'
 import { showToast } from '../../../components/ui/Toast'
 import { useAuthStore } from '../../../stores/authStore'
 import {
+  fetchRoutineSnapshot,
   decodeBase64ToPayload,
   importSharedRoutine,
 } from '../../../services/routines.share.service'
@@ -30,18 +33,29 @@ export function ImportRoutineScreen() {
   const [imported, setImported] = useState(false)
 
   useEffect(() => {
-    const raw = searchParams.get('r')
-    if (!raw) {
-      setDecodeError('No se encontró un código QR válido en la URL.')
-      return
-    }
-    const { payload: decoded, error } = decodeBase64ToPayload(raw)
-    if (error || !decoded) {
-      setDecodeError(error ?? 'Código QR inválido')
-      return
-    }
-    setPayload(decoded)
+    resolvePayloadFromUrl()
   }, [searchParams])
+
+  async function resolvePayloadFromUrl() {
+    const shareId = searchParams.get('share')
+    const base64 = searchParams.get('r')
+
+    if (shareId) {
+      const { payload: fetched, error } = await fetchRoutineSnapshot(shareId)
+      if (error || !fetched) { setDecodeError(error ?? 'Rutina no encontrada'); return }
+      setPayload(fetched)
+      return
+    }
+
+    if (base64) {
+      const { payload: decoded, error } = decodeBase64ToPayload(base64)
+      if (error || !decoded) { setDecodeError(error ?? 'Código QR inválido'); return }
+      setPayload(decoded)
+      return
+    }
+
+    setDecodeError('No se encontró un código de rutina válido en la URL.')
+  }
 
   async function handleImport() {
     if (!payload || !userId) return
@@ -49,21 +63,18 @@ export function ImportRoutineScreen() {
     const { error } = await importSharedRoutine(userId, payload)
     setImporting(false)
 
-    if (error) {
-      showToast(`Error al importar: ${error}`, 'error')
-      return
-    }
-
+    if (error) { showToast(`Error al importar: ${error}`, 'error'); return }
     setImported(true)
     showToast('Rutina importada correctamente', 'success')
     setTimeout(() => navigate('/routines'), 1800)
   }
 
   if (decodeError) return <ImportError message={decodeError} onBack={() => navigate('/')} />
+
   if (!payload) return (
     <div className="import-screen loading-fullscreen">
       <HamsterLoader size={120} />
-      <span className="loading-fullscreen__label">Leyendo rutina...</span>
+      <span className="loading-fullscreen__label">Cargando rutina...</span>
     </div>
   )
 

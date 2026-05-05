@@ -1,7 +1,7 @@
 /* ============================================================
    ShareRoutineModal.tsx — Modal de compartir rutina por QR
-   FASE 05.5 — GYM-YJMG
-   Responsabilidad: mostrar QR + opción copiar link para una rutina.
+   FASE 05.5 v3 — GYM-YJMG
+   Responsabilidad: subir snapshot → generar URL corta → mostrar QR.
    Límite: 150 líneas — SKILL-CODE §2.4
    ============================================================ */
 import { useEffect, useState } from 'react'
@@ -10,9 +10,10 @@ import { X, Copy, Check, Share2 } from 'lucide-react'
 import { HamsterLoader } from '../../../components/ui/HamsterLoader'
 import { Button } from '../../../components/ui/Button'
 import { showToast } from '../../../components/ui/Toast'
+import { useAuthStore } from '../../../stores/authStore'
 import {
-  exportRoutinePayload,
-  encodePayloadToBase64,
+  buildRoutinePayload,
+  uploadRoutineSnapshot,
 } from '../../../services/routines.share.service'
 import './ShareRoutineModal.css'
 
@@ -23,27 +24,38 @@ type ShareRoutineModalProps = {
 }
 
 export function ShareRoutineModal({ routineId, routineName, onClose }: ShareRoutineModalProps) {
+  const userId = useAuthStore((s) => s.user?.id)
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    async function buildShareUrl() {
-      setLoading(true)
-      const { payload, error: exportErr } = await exportRoutinePayload(routineId)
-      if (exportErr || !payload) {
-        setError(exportErr ?? 'Error al exportar rutina')
-        setLoading(false)
-        return
-      }
-      const base64 = encodePayloadToBase64(payload)
-      const url = `${window.location.origin}/import?r=${base64}`
-      setShareUrl(url)
+    if (!userId) { setError('Debes iniciar sesión para compartir'); setLoading(false); return }
+    generateShareUrl(userId)
+  }, [routineId, userId])
+
+  async function generateShareUrl(uid: string) {
+    setLoading(true)
+    setError(null)
+
+    const { payload, error: buildErr } = await buildRoutinePayload(routineId)
+    if (buildErr || !payload) {
+      setError(buildErr ?? 'Error al leer la rutina')
       setLoading(false)
+      return
     }
-    buildShareUrl()
-  }, [routineId])
+
+    const { shareId, error: uploadErr } = await uploadRoutineSnapshot(uid, payload)
+    if (uploadErr || !shareId) {
+      setError(uploadErr ?? 'Error al subir la rutina')
+      setLoading(false)
+      return
+    }
+
+    setShareUrl(`${window.location.origin}/import?share=${shareId}`)
+    setLoading(false)
+  }
 
   async function handleCopyLink() {
     if (!shareUrl) return
@@ -51,7 +63,6 @@ export function ShareRoutineModal({ routineId, routineName, onClose }: ShareRout
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(shareUrl)
       } else {
-        // Fallback para móviles que bloquean clipboard API
         const el = document.createElement('textarea')
         el.value = shareUrl
         el.setAttribute('readonly', '')
@@ -105,9 +116,7 @@ export function ShareRoutineModal({ routineId, routineName, onClose }: ShareRout
             </div>
           )}
 
-          {error && (
-            <p className="share-modal__error">{error}</p>
-          )}
+          {error && <p className="share-modal__error">{error}</p>}
 
           {!loading && !error && shareUrl && (
             <div className="share-modal__qr-wrapper">
@@ -116,7 +125,7 @@ export function ShareRoutineModal({ routineId, routineName, onClose }: ShareRout
                 size={200}
                 bgColor="transparent"
                 fgColor="hsl(168, 72%, 45%)"
-                level="M"
+                level="L"
               />
             </div>
           )}
@@ -124,23 +133,13 @@ export function ShareRoutineModal({ routineId, routineName, onClose }: ShareRout
 
         {!loading && !error && shareUrl && (
           <div className="share-modal__actions">
-            <Button
-              variant="secondary"
-              size="md"
-              fullWidth
-              onClick={handleCopyLink}
-            >
+            <Button variant="secondary" size="md" fullWidth onClick={handleCopyLink}>
               {copied ? <Check size={16} /> : <Copy size={16} />}
               {copied ? 'Link copiado' : 'Copiar link'}
             </Button>
 
             {hasNativeShare && (
-              <Button
-                variant="primary"
-                size="md"
-                fullWidth
-                onClick={handleNativeShare}
-              >
+              <Button variant="primary" size="md" fullWidth onClick={handleNativeShare}>
                 <Share2 size={16} />
                 Compartir
               </Button>

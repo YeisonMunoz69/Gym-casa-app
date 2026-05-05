@@ -57,6 +57,7 @@ export type SharedExercisePayload = {
   exerciseName: string
   muscleGroup: string
   equipment: string | null
+  imageUrl: string | null
   orderIndex: number
   targetSets: number
   repMin: number
@@ -66,6 +67,8 @@ export type SharedExercisePayload = {
   restBetweenExercisesSeconds: number
   notes: string | null
   warmupSets: number
+  isTimeBased: boolean
+  targetTimeSeconds: number | null
 }
 
 export type SharedDayPayload = {
@@ -79,6 +82,15 @@ export type SharedRoutinePayload = {
   routineName: string
   exportedAt: string
   days: SharedDayPayload[]
+}
+
+/** Fila de la tabla shared_routines en Supabase */
+export type SharedRoutineSnapshot = {
+  id: string
+  source_user_id: string
+  routine_name: string
+  payload: SharedRoutinePayload
+  created_at: string
 }
 
 export const WEEKDAY_LABELS: Record<number, string> = {

@@ -46,8 +46,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-2);
   width: 100%;
+  flex-wrap: wrap;
 }
 
 /* Contenedor de botones de categoria especial (Cardio + Estirar) */
@@ -56,6 +57,7 @@
   align-items: center;
   gap: var(--space-2);
   flex-shrink: 0;
+  min-width: 0;
 }
 
 /* Chip de Cardio flotante */
