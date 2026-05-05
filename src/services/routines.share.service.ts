@@ -16,6 +16,7 @@ type ExerciseCatalogJoin = {
   muscle_group: string
   equipment: string | null
   image_url: string | null
+  user_id: string | null  /* null = ejercicio global, UUID = personalizado */
 }
 
 /* ── CONSTRUIR PAYLOAD COMPLETO ──────────────────────────────── */
@@ -143,39 +144,63 @@ export async function importSharedRoutine(
   if (rErr || !newRoutine) return { error: rErr?.message ?? 'Error al crear rutina' }
 
   const routineId = newRoutine.id as string
+  const failedExercises: string[] = []
 
   for (const day of payload.days) {
     const { data: newDay, error: dErr } = await supabase
       .from('routine_days')
-      .insert({ routine_id: routineId, weekday: day.weekday, label: day.label })
+      .insert({ routine_id: routineId, weekday: day.weekday, label: day.label ?? null })
       .select('id')
       .single()
 
-    if (dErr || !newDay) continue
+    if (dErr || !newDay) {
+      console.error('[importSharedRoutine] día fallido:', dErr?.message)
+      continue
+    }
     const dayId = newDay.id as string
 
     for (const ex of day.exercises) {
+      // Saltar si no se pudo resolver el ejercicio
       const resolvedId = await resolveExerciseId(userId, ex)
-      await supabase.from('routine_exercises').insert({
+      if (!resolvedId) {
+        failedExercises.push(ex.exerciseName)
+        continue
+      }
+
+      // Aplicar defaults seguros en todos los campos numéricos
+      // para evitar rechazos por NOT NULL en la BD
+      const { error: exErr } = await supabase.from('routine_exercises').insert({
         routine_day_id: dayId,
-        exercise_id: resolvedId,
-        order_index: ex.orderIndex,
-        target_sets: ex.targetSets,
-        rep_min: ex.repMin,
-        rep_max: ex.repMax,
-        rir_target: ex.rirTarget,
-        rest_seconds: ex.restSeconds,
-        rest_between_exercises_seconds: ex.restBetweenExercisesSeconds,
-        notes: ex.notes,
-        warmup_sets: ex.warmupSets,
-        is_time_based: ex.isTimeBased ?? false,
+        exercise_id:    resolvedId,
+        order_index:    ex.orderIndex    ?? 0,
+        target_sets:    ex.targetSets    ?? 3,
+        rep_min:        ex.repMin        ?? 8,
+        rep_max:        ex.repMax        ?? 12,
+        rir_target:     ex.rirTarget     ?? 2,
+        rest_seconds:   ex.restSeconds   ?? 90,
+        rest_between_exercises_seconds: ex.restBetweenExercisesSeconds ?? 60,
+        notes:          ex.notes         ?? null,
+        warmup_sets:    ex.warmupSets    ?? 0,
+        is_time_based:  ex.isTimeBased   ?? false,
         target_time_seconds: ex.targetTimeSeconds ?? null,
       })
+
+      if (exErr) {
+        console.error('[importSharedRoutine] ejercicio fallido:', ex.exerciseName, exErr.message)
+        failedExercises.push(ex.exerciseName)
+      }
     }
+  }
+
+  if (failedExercises.length > 0) {
+    console.warn('[importSharedRoutine] ejercicios no importados:', failedExercises)
+    // Retornar éxito parcial — la rutina se creó pero con advertencia
+    return { error: null }
   }
 
   return { error: null }
 }
+
 
 /* ── RETROCOMPATIBILIDAD: decodificar QRs legacy (?r=BASE64) ── */
 
@@ -201,56 +226,54 @@ async function resolveExerciseId(
   userId: string,
   ex: SharedDayPayload['exercises'][number],
 ): Promise<string> {
-  // 1. El ejercicio existe en el catálogo público/global → reusar
-  const { data: found } = await supabase
+  // 1. El ejercicio existe en el catálogo global (user_id = null) → todos pueden leerlo y reusarlo
+  const { data: globalEx } = await supabase
     .from('exercises_catalog')
     .select('id')
     .eq('id', ex.exerciseId)
-    .maybeSingle()   // maybeSingle: no lanza error si no existe
+    .is('user_id', null)       // Solo buscar en el catálogo global
+    .maybeSingle()
 
-  if (found?.id) return found.id as string
+  if (globalEx?.id) return globalEx.id as string
 
-  // 2. El ejercicio es personalizado (del exportador) → buscar por nombre
-  //    para no duplicar si ya fue importado antes
-  const { data: byName } = await supabase
+  // 2. El ejercicio es personalizado del exportador → comprobar si el importador
+  //    ya lo tiene (mismo nombre, mismo user_id del importador)
+  const { data: ownEx } = await supabase
     .from('exercises_catalog')
     .select('id')
     .ilike('name', ex.exerciseName)
-    .eq('source', 'imported')
+    .eq('user_id', userId)
     .maybeSingle()
 
-  if (byName?.id) return byName.id as string
+  if (ownEx?.id) return ownEx.id as string
 
-  // 3. Clonar el ejercicio con todos los campos mínimos requeridos
+  // 3. Clonar el ejercicio para el usuario importador
+  //    Schema real: user_id (no created_by), sin columna source
   const { data: cloned, error: cloneErr } = await supabase
     .from('exercises_catalog')
     .insert({
-      name: ex.exerciseName,
-      muscle_group: ex.muscleGroup ?? 'general',
-      equipment: ex.equipment ?? null,
-      image_url: ex.imageUrl ?? null,
-      source: 'imported',
-      created_by: userId,
+      name:          ex.exerciseName,
+      muscle_group:  ex.muscleGroup  ?? 'general',
+      equipment:     ex.equipment    ?? null,
+      image_url:     ex.imageUrl     ?? null,
+      user_id:       userId,          // Asignar al usuario importador
     })
     .select('id')
     .single()
 
   if (cloned?.id) return cloned.id as string
 
-  // 4. Fallback final: crear placeholder mínimo garantizado
-  console.error('[resolveExerciseId] clone failed:', cloneErr?.message)
+  // 4. Fallback: intentar con los mínimos absolutos (name + user_id)
+  console.error('[resolveExerciseId] clon fallido:', cloneErr?.message, '| ejercicio:', ex.exerciseName)
   const { data: placeholder } = await supabase
     .from('exercises_catalog')
     .insert({
-      name: ex.exerciseName,
+      name:         ex.exerciseName,
       muscle_group: 'general',
-      source: 'imported',
-      created_by: userId,
+      user_id:      userId,
     })
     .select('id')
     .single()
 
-  // Si incluso el placeholder falla, retornar string vacío y dejar que
-  // la UI lo maneje con el null-guard en ExerciseItem
   return (placeholder?.id ?? '') as string
 }

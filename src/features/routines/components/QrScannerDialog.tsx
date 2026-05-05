@@ -201,26 +201,58 @@ function buildImportMessage(payload: SharedRoutinePayload, total: number): strin
   )
 }
 
+/**
+ * Decodifica un QR de un archivo de imagen.
+ * Prueba 4 rotaciones x 2 resoluciones para manejar fotos de camara
+ * con orientacion EXIF (0, 90, 180, 270 grados) que ctx.drawImage ignora.
+ */
 async function decodeQrFromFile(file: File): Promise<string | null> {
-  const MAX_SIZE = 1200
+  const SIZES = [1800, 900]
+  const ROTATIONS = [0, Math.PI / 2, Math.PI, -Math.PI / 2]
+
   return new Promise((resolve) => {
     const objectUrl = URL.createObjectURL(file)
     const img = new Image()
+
     img.onload = () => {
-      const scale = Math.min(1, MAX_SIZE / Math.max(img.width, img.height))
-      const w = Math.floor(img.width * scale)
-      const h = Math.floor(img.height * scale)
-      const canvas = document.createElement('canvas')
-      canvas.width = w
-      canvas.height = h
-      const ctx = canvas.getContext('2d')
-      if (!ctx) { URL.revokeObjectURL(objectUrl); resolve(null); return }
-      ctx.drawImage(img, 0, 0, w, h)
-      const imageData = ctx.getImageData(0, 0, w, h)
-      const code = jsQR(imageData.data, w, h, { inversionAttempts: 'attemptBoth' })
       URL.revokeObjectURL(objectUrl)
-      resolve(code?.data ?? null)
+      const nw = img.naturalWidth  || img.width
+      const nh = img.naturalHeight || img.height
+
+      for (const maxSize of SIZES) {
+        const scale = Math.min(1, maxSize / Math.max(nw, nh))
+        const sw = Math.floor(nw * scale)
+        const sh = Math.floor(nh * scale)
+
+        for (const rad of ROTATIONS) {
+          const portrait = rad === Math.PI / 2 || rad === -Math.PI / 2
+          const cw = portrait ? sh : sw
+          const ch = portrait ? sw : sh
+
+          const canvas = document.createElement('canvas')
+          canvas.width  = cw
+          canvas.height = ch
+          const ctx = canvas.getContext('2d')
+          if (!ctx) continue
+
+          ctx.save()
+          ctx.translate(cw / 2, ch / 2)
+          ctx.rotate(rad)
+          ctx.drawImage(img, -sw / 2, -sh / 2, sw, sh)
+          ctx.restore()
+
+          const imageData = ctx.getImageData(0, 0, cw, ch)
+          const code = jsQR(imageData.data, cw, ch, { inversionAttempts: 'attemptBoth' })
+          if (code?.data) {
+            resolve(code.data)
+            return
+          }
+        }
+      }
+
+      resolve(null)
     }
+
     img.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(null) }
     img.src = objectUrl
   })
