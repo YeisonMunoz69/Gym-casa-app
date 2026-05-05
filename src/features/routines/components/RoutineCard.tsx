@@ -12,47 +12,79 @@ type RoutineCardProps = {
   onDuplicate: () => void
 }
 
-/** Mide si el texto del nombre desborda su contenedor y calcula el offset del marquee */
-function useNameMarquee() {
+type MarqueeState = {
+  active: boolean
+  /** Distancia total a desplazar (nameWidth + gap) en px */
+  offset: number
+  /** Duración del ciclo en segundos */
+  duration: number
+}
+
+const MARQUEE_GAP_PX   = 56  // espacio entre el final y el inicio del loop
+const MARQUEE_SPEED_PX = 48  // px por segundo — semi-lento
+
+/**
+ * Mide si el nombre desborda el wrapper y calcula
+ * los parámetros del ticker de dos copias.
+ * Usa doble requestAnimationFrame para garantizar layout estable.
+ */
+function useNameMarquee(routineName: string) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const nameRef    = useRef<HTMLSpanElement>(null)
-  const [isOverflowing, setIsOverflowing]   = useState(false)
-  const [marqueeOffset, setMarqueeOffset]   = useState(0)
+  const [state, setState] = useState<MarqueeState>({ active: false, offset: 0, duration: 0 })
 
   useEffect(() => {
-    const wrapper = wrapperRef.current
-    const name    = nameRef.current
-    if (!wrapper || !name) return
+    let rafId: number
 
     function measure() {
-      const overflow = name!.scrollWidth - wrapper!.clientWidth
-      if (overflow > 4) {
-        setIsOverflowing(true)
-        setMarqueeOffset(overflow)
+      const wrapper = wrapperRef.current
+      const name    = nameRef.current
+      if (!wrapper || !name) return
+
+      const overflow = name.scrollWidth - wrapper.clientWidth
+      if (overflow > 2) {
+        const totalScroll = name.scrollWidth + MARQUEE_GAP_PX
+        setState({
+          active: true,
+          offset: totalScroll,
+          duration: Math.max(4, totalScroll / MARQUEE_SPEED_PX),
+        })
       } else {
-        setIsOverflowing(false)
-        setMarqueeOffset(0)
+        setState({ active: false, offset: 0, duration: 0 })
       }
     }
 
-    measure()
-    const observer = new ResizeObserver(measure)
-    observer.observe(wrapper)
-    return () => observer.disconnect()
-  }, [])
+    // Doble RAF: el primero espera el paint, el segundo espera el layout del flex
+    rafId = requestAnimationFrame(() => {
+      requestAnimationFrame(measure)
+    })
 
-  return { wrapperRef, nameRef, isOverflowing, marqueeOffset }
+    const observer = new ResizeObserver(() => {
+      requestAnimationFrame(measure)
+    })
+    if (wrapperRef.current) observer.observe(wrapperRef.current)
+
+    return () => {
+      cancelAnimationFrame(rafId)
+      observer.disconnect()
+    }
+  }, [routineName])
+
+  return { wrapperRef, nameRef, state }
 }
 
 export function RoutineCard({ routine, onSelect, onDelete, onToggle, onDuplicate }: RoutineCardProps) {
-  const { wrapperRef, nameRef, isOverflowing, marqueeOffset } = useNameMarquee()
+  const { wrapperRef, nameRef, state } = useNameMarquee(routine.name)
 
   const dayChips = routine.routine_days
     .sort((a, b) => a.weekday - b.weekday)
     .map((d) => WEEKDAY_SHORT[d.weekday])
 
-  const nameStyle = isOverflowing
-    ? ({ '--marquee-offset': `-${marqueeOffset}px` } as React.CSSProperties)
+  const trackStyle = state.active
+    ? ({
+        '--marquee-offset':   `-${state.offset}px`,
+        '--marquee-duration': `${state.duration}s`,
+      } as React.CSSProperties)
     : undefined
 
   return (
@@ -67,15 +99,21 @@ export function RoutineCard({ routine, onSelect, onDelete, onToggle, onDuplicate
 
         <div className="routine-card__content">
           <div className="routine-card__info">
+
+            {/* Wrapper que recorta + el track animado con 2 copias */}
             <div ref={wrapperRef} className="routine-card__name-wrapper">
-              <span
-                ref={nameRef}
-                className={`routine-card__name${isOverflowing ? ' routine-card__name--marquee' : ''}`}
-                style={nameStyle}
+              <div
+                className={`routine-card__name-track${state.active ? ' routine-card__name-track--scrolling' : ''}`}
+                style={trackStyle}
               >
-                {routine.name}
-              </span>
+                <span ref={nameRef} className="routine-card__name">{routine.name}</span>
+                {/* Segunda copia para el loop continuo sin salto */}
+                {state.active && (
+                  <span className="routine-card__name" aria-hidden="true">{routine.name}</span>
+                )}
+              </div>
             </div>
+
             <div className="routine-card__days">
               {dayChips.length > 0
                 ? dayChips.map((label) => (

@@ -4,7 +4,7 @@
    Límite: 150 líneas — SKILL-CODE §2.4
    ============================================================ */
 import { useState, useEffect } from 'react'
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { ThemeProvider } from './app/ThemeProvider'
 import { AuthProvider } from './app/AuthProvider'
 import { AppShell } from './components/layout/AppShell'
@@ -97,6 +97,25 @@ function AIChatRoute() {
 }
 
 
+/* ── Redirige a URL de share pendiente tras el login ──────── */
+function PendingShareRedirect() {
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
+    const pending = sessionStorage.getItem('pendingShareUrl')
+    if (pending) {
+      sessionStorage.removeItem('pendingShareUrl')
+      navigate(pending, { replace: true })
+    } else {
+      navigate('/dashboard', { replace: true })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.key])
+
+  return null
+}
+
 /* ── App autenticada con árbol de rutas ──────────────────── */
 
 function AuthenticatedApp() {
@@ -120,7 +139,17 @@ function AuthenticatedApp() {
   }, [userId])
 
   if (authLoading || (session && (profileLoading || !banChecked))) return <LoadingScreen />
-  if (!session) return <LoginScreen />
+
+  // Ruta pública: /import funciona sin sesión (la sesión se pide dentro del componente)
+  // Pero si el usuario no tiene sesión y viene de un ?share= link, guardamos la URL
+  // para redirigir después del login.
+  if (!session) {
+    const currentPath = window.location.pathname + window.location.search
+    if (currentPath.startsWith('/import') && currentPath.includes('share=')) {
+      sessionStorage.setItem('pendingShareUrl', currentPath)
+    }
+    return <LoginScreen />
+  }
   if (isBanned) return <BannedScreen />
   if (!hasProfile) return <OnboardingFlow />
 
@@ -132,7 +161,8 @@ function AuthenticatedApp() {
 
         {/* Rutas con chrome (Header + BottomNav) */}
         <Route element={<AppShell />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
+          {/* Redirigir a URL pendiente de share si existe */}
+          <Route index element={<PendingShareRedirect />} />
           <Route path="/dashboard" element={<DashboardScreen />} />
           <Route path="/routines"  element={<RoutinesTab />} />
           <Route path="/session"   element={<SessionTab />} />

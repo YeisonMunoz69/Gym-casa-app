@@ -108,8 +108,8 @@
   transform-origin: center center;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: var(--color-text-secondary);
-  /* Ajuste a la izquierda */
-  margin-left: 7px;
+  /* Para mover el icono mas al centro y que quede centrado con el resto de la tarjeta */
+  margin-left: 20px;
   /* Para aumentar el tamaño del icono */
   margin-top: 100px;
   margin-bottom: 100px;
@@ -174,35 +174,55 @@
 }
 
 
-/* Wrapper que recorta el texto desbordante */
+/* Wrapper que recorta el ticker — fade en bordes para entrada/salida suave */
 .routine-card__name-wrapper {
   overflow: hidden;
   width: 100%;
   padding-left: var(--space-6);
+  /* Fade sutil en los extremos para efecto premium */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 8%,
+    black 88%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 8%,
+    black 88%,
+    transparent 100%
+  );
 }
 
-/* Nombre: siempre en una línea, sin recorte propio */
+/* Track que contiene las dos copias del nombre en fila */
+.routine-card__name-track {
+  display: flex;
+  gap: 56px;          /* Espacio entre copia 1 y copia 2 */
+  width: max-content;
+}
+
+/* Animación activa: desliza el track completo a la izquierda de forma continua */
+.routine-card__name-track--scrolling {
+  animation: routine-marquee-ticker var(--marquee-duration, 6s) linear infinite;
+}
+
+@keyframes routine-marquee-ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(var(--marquee-offset, 0px)); }
+}
+
+/* Estilo base del span de nombre (compartido por copia 1 y copia 2) */
 .routine-card__name {
   font-size: var(--text-xl);
   font-weight: var(--weight-semibold);
   color: var(--color-text-primary);
   white-space: nowrap;
   display: inline-block;
-  will-change: transform;
+  flex-shrink: 0;
 }
 
-/* Clase activa solo cuando el texto mide más que el wrapper */
-.routine-card__name--marquee {
-  animation: routine-name-marquee 7s ease-in-out infinite;
-}
-
-@keyframes routine-name-marquee {
-  0%,
-  22% { transform: translateX(0); }          /* Pausa inicial */
-  58%,
-  82% { transform: translateX(var(--marquee-offset, 0px)); } /* Slide al final */
-  100% { transform: translateX(0); }          /* Regreso */
-}
 
 .routine-card__days {
   display: flex;
