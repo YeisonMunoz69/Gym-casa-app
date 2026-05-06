@@ -127,9 +127,9 @@ export async function saveAllSessionSets(
 
   if (!error) {
     const counts: Record<string, number> = {}
-    for (const r of rows) {
-      if (!r.is_warmup) {
-        counts[r.session_exercise_id] = (counts[r.session_exercise_id] || 0) + 1
+    for (const s of sets) {
+      if (!s.is_warmup) {
+        counts[s.session_exercise_id] = (counts[s.session_exercise_id] || 0) + 1
       }
     }
     
