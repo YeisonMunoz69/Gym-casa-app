@@ -59,9 +59,9 @@ export function SessionSummary({ data, exercises, onClose, onBonusAccepted }: Se
     if (chestEnabled) { setShowChest(true) } else { onClose() }
   }
 
-  async function handleBonusCompleted() {
+  async function handleBonusCompleted(performed: { weight: number; reps: number }) {
     if (userId && data.sessionId) {
-      await addBonusExerciseToHistory(userId, data.sessionId, reward)
+      await addBonusExerciseToHistory(userId, data.sessionId, reward, performed)
     }
     onBonusAccepted?.()   // Marca bonus completado en el padre
     onClose()             // Muestra pantalla de motivación

@@ -13,6 +13,7 @@ type UseRestTimerReturn = {
   running: boolean
   start: (seconds: number) => void
   pause: () => void
+  resume: () => void
   reset: () => void
   extend: (seconds: number) => void
   progress: number  // 0-1, para el SVG circle
@@ -30,6 +31,7 @@ export function useRestTimer(
   const tickTimer = useSessionStore((s) => s.tickTimer)
   const startTimer = useSessionStore((s) => s.startTimer)
   const pauseTimer = useSessionStore((s) => s.pauseTimer)
+  const resumeTimer = useSessionStore((s) => s.resumeTimer)
   const resetTimer = useSessionStore((s) => s.resetTimer)
   const extendTimer = useSessionStore((s) => s.extendTimer)
 
@@ -70,10 +72,11 @@ export function useRestTimer(
 
   const start = useCallback((seconds: number) => startTimer(seconds), [startTimer])
   const pause = useCallback(() => pauseTimer(), [pauseTimer])
+  const resume = useCallback(() => resumeTimer(), [resumeTimer])
   const reset = useCallback(() => resetTimer(), [resetTimer])
   const extend = useCallback((secs: number) => extendTimer(secs), [extendTimer])
 
   const progress = total > 0 ? Math.max(0, remaining) / total : 0
 
-  return { remaining, total, running, start, pause, reset, extend, progress, mode }
+  return { remaining, total, running, start, pause, resume, reset, extend, progress, mode }
 }

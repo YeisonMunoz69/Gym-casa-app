@@ -40,7 +40,7 @@ export function RestTimer({ defaultSeconds, onFinish: onFinishExternal }: RestTi
     playCountdownBeep(secsLeft)
   }
 
-  const { remaining, running, progress, start, pause, reset, extend, mode } =
+  const { remaining, running, progress, start, pause, resume, reset, extend, mode } =
     useRestTimer(handleFinish, handleCountdown)
 
   // Persiste el timer ante recargas
@@ -55,7 +55,7 @@ export function RestTimer({ defaultSeconds, onFinish: onFinishExternal }: RestTi
     } else if (running) {
       pause()
     } else {
-      start(remaining)
+      resume()
     }
   }
 

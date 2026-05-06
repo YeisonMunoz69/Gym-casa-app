@@ -150,6 +150,60 @@
   color: var(--color-text-tertiary);
 }
 
+/* Inputs de registro */
+.bonus-tracker__inputs {
+  display: flex;
+  gap: var(--space-3);
+  margin: 0 var(--space-4) var(--space-1);
+}
+
+.bonus-tracker__field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.bonus-tracker__field-label {
+  font-size: 10px;
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+.bonus-tracker__input {
+  width: 100%;
+  padding: var(--space-2) var(--space-1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  font-family: var(--font-mono);
+  text-align: center;
+  transition: border-color var(--transition-fast);
+  -moz-appearance: textfield;
+}
+
+.bonus-tracker__input::-webkit-inner-spin-button,
+.bonus-tracker__input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+.bonus-tracker__input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-glow);
+}
+
+.bonus-tracker__input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Serie */
 .bonus-tracker__set {
   display: flex;

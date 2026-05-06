@@ -19,6 +19,7 @@ type SetTrackerProps = {
 export function SetTracker({ exercise, onSetCompleted }: SetTrackerProps) {
   const sets = useSessionStore((s) => s.sets[exercise.routineExerciseId] ?? [])
   const completeSet = useSessionStore((s) => s.completeSet)
+  const uncompleteSet = useSessionStore((s) => s.uncompleteSet)
   const { saveSet } = useSetAutoSave()
   const { settings } = useSettings()
   const weightUnit = settings?.unit_system === 'imperial' ? 'lb' : 'kg'
@@ -36,6 +37,11 @@ export function SetTracker({ exercise, onSetCompleted }: SetTrackerProps) {
     onSetCompleted()
   }
 
+  function handleUncomplete(draft: SetDraft) {
+    uncompleteSet(exercise.routineExerciseId, draft.setIndex)
+    saveSet(exercise.routineExerciseId, { ...draft, completedAt: null })
+  }
+
   return (
     <div className="set-tracker">
       <div className="set-tracker__header">
@@ -48,13 +54,14 @@ export function SetTracker({ exercise, onSetCompleted }: SetTrackerProps) {
           <span className="set-tracker__group-label">Calentamiento</span>
           {warmupSets.map((draft) => (
             <SetRow
-              key={draft.setIndex}
+              key={`${exercise.routineExerciseId}-${draft.setIndex}`}
               draft={draft}
               isTimeBased={exercise.isTimeBased}
               targetTimeSeconds={exercise.targetTimeSeconds}
               weightUnit={weightUnit}
               onUpdate={handleUpdate}
               onComplete={handleComplete}
+              onUncomplete={handleUncomplete}
             />
           ))}
         </div>
@@ -66,13 +73,14 @@ export function SetTracker({ exercise, onSetCompleted }: SetTrackerProps) {
         )}
         {workSets.map((draft) => (
           <SetRow
-            key={draft.setIndex}
+            key={`${exercise.routineExerciseId}-${draft.setIndex}`}
             draft={draft}
             isTimeBased={exercise.isTimeBased}
             targetTimeSeconds={exercise.targetTimeSeconds}
             weightUnit={weightUnit}
             onUpdate={handleUpdate}
             onComplete={handleComplete}
+            onUncomplete={handleUncomplete}
           />
         ))}
       </div>

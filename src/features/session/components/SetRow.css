@@ -126,7 +126,14 @@
   background: var(--color-success);
   border-color: var(--color-success);
   color: white;
-  cursor: default;
+  cursor: pointer;
+}
+
+.set-row--completed .set-row__complete-btn:hover {
+  background: var(--color-error);
+  border-color: var(--color-error);
+  opacity: 0.9;
+  transform: scale(0.95);
 }
 
 .set-row__complete-btn:disabled:not(.set-row--completed .set-row__complete-btn) {

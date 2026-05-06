@@ -13,7 +13,7 @@ import './BonusExerciseTracker.css'
 
 type BonusExerciseTrackerProps = {
   reward: RewardExercise
-  onFinish: () => void
+  onFinish: (performed: { weight: number; reps: number }) => void
   onSkip: () => void
 }
 
@@ -24,6 +24,8 @@ function formatRest(seconds: number): string {
 
 export function BonusExerciseTracker({ reward, onFinish, onSkip }: BonusExerciseTrackerProps) {
   const [done, setDone] = useState(false)
+  const [weight, setWeight] = useState('')
+  const [reps, setReps] = useState(reward.reps.toString())
 
   function handleToggle() {
     if ('vibrate' in navigator) navigator.vibrate(done ? 20 : 40)
@@ -78,6 +80,34 @@ export function BonusExerciseTracker({ reward, onFinish, onSkip }: BonusExercise
           </div>
         </div>
 
+        {/* Inputs de registro */}
+        <div className="bonus-tracker__inputs">
+          <label className="bonus-tracker__field">
+            <span className="bonus-tracker__field-label">kg</span>
+            <input
+              className="bonus-tracker__input"
+              type="number"
+              inputMode="decimal"
+              placeholder="—"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              disabled={done}
+            />
+          </label>
+          <label className="bonus-tracker__field">
+            <span className="bonus-tracker__field-label">reps</span>
+            <input
+              className="bonus-tracker__input"
+              type="number"
+              inputMode="numeric"
+              placeholder="—"
+              value={reps}
+              onChange={(e) => setReps(e.target.value)}
+              disabled={done}
+            />
+          </label>
+        </div>
+
         {/* Serie para marcar */}
         <motion.button
           className={`bonus-tracker__set ${done ? 'bonus-tracker__set--done' : ''}`}
@@ -98,7 +128,7 @@ export function BonusExerciseTracker({ reward, onFinish, onSkip }: BonusExercise
           className={`bonus-tracker__finish-btn ${done ? 'bonus-tracker__finish-btn--ready' : ''}`}
           whileTap={{ scale: 0.96 }}
           disabled={!done}
-          onClick={onFinish}
+          onClick={() => onFinish({ weight: parseFloat(weight) || 0, reps: parseInt(reps, 10) || 0 })}
         >
           <CheckCircle size={16} />
           {done ? 'Listo — registrar en historial' : 'Completa la serie primero'}

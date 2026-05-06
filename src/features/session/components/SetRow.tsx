@@ -17,6 +17,7 @@ type SetRowProps = {
   weightUnit?: string
   onUpdate: (updated: SetDraft) => void
   onComplete: (updated: SetDraft) => void
+  onUncomplete: (draft: SetDraft) => void
 }
 
 function parseNumericInput(raw: string): number | null {
@@ -24,7 +25,7 @@ function parseNumericInput(raw: string): number | null {
   return isNaN(n) ? null : n
 }
 
-export function SetRow({ draft, isTimeBased, targetTimeSeconds, weightUnit = 'kg', onUpdate, onComplete }: SetRowProps) {
+export function SetRow({ draft, isTimeBased, targetTimeSeconds, weightUnit = 'kg', onUpdate, onComplete, onUncomplete }: SetRowProps) {
   const [weight, setWeight] = useState(draft.weight?.toString() ?? '')
   const [reps, setReps] = useState(draft.reps?.toString() ?? '')
   const [rir, setRir] = useState(draft.rir?.toString() ?? '')
@@ -34,6 +35,9 @@ export function SetRow({ draft, isTimeBased, targetTimeSeconds, weightUnit = 'kg
 
   const startGlobalTimer = useSessionStore((s) => s.startTimer)
   const pauseGlobalTimer = useSessionStore((s) => s.pauseTimer)
+  const isGlobalTimerRunning = useSessionStore((s) => s.timerRunning)
+  const timerMode = useSessionStore((s) => s.timerMode)
+  const wasRunningRef = useRef(false)
 
   const isCompleted = draft.completedAt !== null
   const setNumber = draft.setIndex + 1
@@ -43,6 +47,24 @@ export function SetRow({ draft, isTimeBased, targetTimeSeconds, weightUnit = 'kg
       if (timerRef.current) clearInterval(timerRef.current)
     }
   }, [])
+
+  // Sincroniza la pausa/reanudación desde el RestTimer global
+  useEffect(() => {
+    if (isRunning && !isGlobalTimerRunning) {
+      wasRunningRef.current = true
+      if (timerRef.current) clearInterval(timerRef.current)
+      setIsRunning(false)
+    } else if (!isRunning && isGlobalTimerRunning && wasRunningRef.current && timerMode === 'execution') {
+      wasRunningRef.current = false
+      setIsRunning(true)
+      timerRef.current = setInterval(() => {
+        setDurationSeconds(prev => {
+          const current = parseInt(prev || '0', 10)
+          return (current + 1).toString()
+        })
+      }, 1000) as unknown as number
+    }
+  }, [isGlobalTimerRunning, isRunning, timerMode]) // eslint-disable-line
 
   useEffect(() => {
     if (!isRunning && durationSeconds !== (draft.durationSeconds?.toString() ?? '')) {
@@ -200,7 +222,7 @@ export function SetRow({ draft, isTimeBased, targetTimeSeconds, weightUnit = 'kg
                 value={durationSeconds}
                 onChange={(e) => setDurationSeconds(e.target.value)}
                 onBlur={handleBlur}
-                placeholder="—"
+                placeholder={targetTimeSeconds ? targetTimeSeconds.toString() : "—"}
                 disabled={isCompleted || isRunning}
                 aria-label={`Tiempo serie ${setNumber}`}
               />
@@ -210,10 +232,9 @@ export function SetRow({ draft, isTimeBased, targetTimeSeconds, weightUnit = 'kg
       </div>
 
       <button
-        className="set-row__complete-btn"
-        onClick={() => handleComplete()}
-        disabled={isCompleted}
-        aria-label={isCompleted ? 'Serie completada' : 'Marcar serie como completada'}
+        className={`set-row__complete-btn ${isCompleted ? 'set-row__complete-btn--active' : ''}`}
+        onClick={() => isCompleted ? onUncomplete(draft) : handleComplete()}
+        aria-label={isCompleted ? 'Desmarcar serie' : 'Marcar serie como completada'}
       >
         <Check size={16} strokeWidth={2.5} />
       </button>

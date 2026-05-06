@@ -102,3 +102,39 @@
   transform: translateY(-1px);
 }
 
+/* Overlay "¡Comienza!" al cambiar de ejercicio */
+.active-session__next-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: hsla(220, 20%, 8%, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  pointer-events: none;
+  animation: fade-in-out 2s forwards ease-in-out;
+}
+
+.active-session__next-overlay span {
+  font-size: var(--text-4xl);
+  font-weight: var(--weight-black);
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 24px var(--color-primary-glow);
+  animation: scale-up 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes fade-in-out {
+  0%   { opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes scale-up {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}

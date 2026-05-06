@@ -27,9 +27,13 @@ type SessionStore = SessionState & {
   /** Marca un set como completado (timestamp) */
   completeSet: (routineExerciseId: string, setIndex: number) => void
 
+  /** Desmarca un set completado */
+  uncompleteSet: (routineExerciseId: string, setIndex: number) => void
+
   /** Timer: inicia con N segundos */
   startTimer: (seconds: number, mode?: 'rest' | 'execution', initialElapsed?: number) => void
   pauseTimer: () => void
+  resumeTimer: () => void
   resetTimer: () => void
   extendTimer: (seconds: number) => void
   tickTimer: () => void
@@ -141,6 +145,18 @@ export const useSessionStore = create<SessionStore>((set) => ({
     })
   },
 
+  uncompleteSet(routineExerciseId, setIndex) {
+    set((state) => {
+      const existing = state.sets[routineExerciseId] ?? []
+      const updated = existing.map((s) =>
+        s.setIndex === setIndex
+          ? { ...s, completedAt: null }
+          : s,
+      )
+      return { sets: { ...state.sets, [routineExerciseId]: updated } }
+    })
+  },
+
   startTimer(seconds, mode = 'rest', initialElapsed = 0) {
     set({ 
       timerMode: mode,
@@ -152,6 +168,10 @@ export const useSessionStore = create<SessionStore>((set) => ({
 
   pauseTimer() {
     set({ timerRunning: false })
+  },
+
+  resumeTimer() {
+    set({ timerRunning: true })
   },
 
   resetTimer() {

@@ -139,6 +139,7 @@ export async function addBonusExerciseToHistory(
   _userId: string,
   sessionId: string,
   bonus: { name: string; sets: number },
+  performed: { reps: number; weight: number }
 ): Promise<void> {
   // Buscar ejercicio en catálogo por nombre aproximado
   const { data: found } = await supabase
@@ -151,11 +152,22 @@ export async function addBonusExerciseToHistory(
   const exerciseId = found?.id ?? null
   if (!exerciseId) return   // Si no hay match en catálogo, omitir silenciosamente
 
-  await supabase.from('session_exercises').insert({
+  const { data: sessionEx } = await supabase.from('session_exercises').insert({
     session_id: sessionId,
     exercise_id: exerciseId,
     order_index: 999,           // Siempre al final
     planned_sets: bonus.sets,
-    completed_sets: 0,
-  })
+    completed_sets: 1,          // Se completó la serie del cofre
+  }).select('id').single()
+
+  if (sessionEx?.id) {
+    await supabase.from('session_sets').insert({
+      session_exercise_id: sessionEx.id,
+      set_number: 1,
+      weight: performed.weight > 0 ? performed.weight : null,
+      reps: performed.reps > 0 ? performed.reps : null,
+      is_warmup: false,
+      completed_at: new Date().toISOString(),
+    })
+  }
 }

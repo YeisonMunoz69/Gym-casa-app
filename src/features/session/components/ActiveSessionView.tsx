@@ -3,7 +3,7 @@
    FASE 03.2 — GYM-YJMG
    Responsabilidad: layout y flujo. Delega lógica a hooks y subcomponentes.
    ============================================================ */
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Plus } from 'lucide-react'
 import { useSessionStore } from '../../../stores/sessionStore'
 import { useActiveSession } from '../hooks/useActiveSession'
@@ -39,6 +39,7 @@ export function ActiveSessionView() {
   const [showBonusPicker, setShowBonusPicker] = useState(false)
   const [showMotivation, setShowMotivation] = useState(false)
   const [bonusUsed, setBonusUsed] = useState(false)
+  const [showNextOverlay, setShowNextOverlay] = useState(false)
 
   const currentExercise = exercises[currentIndex] ?? null
   const nextExercise = exercises[currentIndex + 1] ?? null
@@ -66,6 +67,16 @@ export function ActiveSessionView() {
 
   // Ref para disparar auto-avance desde el callback del timer sin closure stale
   const autoAdvanceRef = useRef<(() => void) | null>(null)
+
+  // Auto-scroll hacia arriba y overlay "¡Comienza!" al cambiar de ejercicio
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (currentIndex > 0) {
+      setShowNextOverlay(true)
+      const t = setTimeout(() => setShowNextOverlay(false), 2000)
+      return () => clearTimeout(t)
+    }
+  }, [currentIndex])
 
   /** Cuando termina el timer entre ejercicios → avanzar automáticamente */
   function handleInterExerciseTimerFinish() {
@@ -238,6 +249,13 @@ export function ActiveSessionView() {
           onConfirm={handleBonusConfirm}
           onClose={() => setShowBonusPicker(false)}
         />
+      )}
+
+      {/* Overlay: ¡Comienza! */}
+      {showNextOverlay && (
+        <div className="active-session__next-overlay">
+          <span>¡Comienza!</span>
+        </div>
       )}
     </div>
   )

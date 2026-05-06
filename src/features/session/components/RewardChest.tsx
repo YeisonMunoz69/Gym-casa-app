@@ -15,7 +15,7 @@ import './RewardChest.css'
 type RewardChestProps = {
   reward: RewardExercise
   onClose: () => void
-  onBonusCompleted: () => void   // Guarda en historial y cierra todo
+  onBonusCompleted: (performed: { weight: number; reps: number }) => void   // Guarda en historial y cierra todo
 }
 
 type ChestPhase = 'closed' | 'revealed' | 'tracking'
