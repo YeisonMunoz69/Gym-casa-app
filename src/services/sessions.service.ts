@@ -50,13 +50,10 @@ export async function completeSession(
 export async function cancelSession(
   sessionId: string,
 ): Promise<{ error: string | null }> {
-  // En lugar de borrarla (puede haber llaves foraneas), la marcamos como cancelled
+  // Eliminamos la sesión por completo. ON DELETE CASCADE en BD limpiará session_exercises y session_sets
   const { error } = await supabase
     .from('sessions')
-    .update({
-      status: 'cancelled',
-      end_time: new Date().toISOString(),
-    })
+    .delete()
     .eq('id', sessionId)
 
   return { error: error?.message ?? null }
@@ -127,6 +124,21 @@ export async function saveAllSessionSets(
   const { error } = await supabase
     .from('session_sets')
     .upsert(rows, { onConflict: 'session_exercise_id,set_number' })
+
+  if (!error) {
+    const counts: Record<string, number> = {}
+    for (const r of rows) {
+      if (!r.is_warmup) {
+        counts[r.session_exercise_id] = (counts[r.session_exercise_id] || 0) + 1
+      }
+    }
+    
+    // Batch update is not supported natively via JS loop without multiple requests,
+    // but since it's the end of session, firing a few updates is acceptable.
+    for (const [id, count] of Object.entries(counts)) {
+      await supabase.from('session_exercises').update({ completed_sets: count }).eq('id', id)
+    }
+  }
 
   return { error: error?.message ?? null }
 }

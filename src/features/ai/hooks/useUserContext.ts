@@ -22,6 +22,7 @@ type RecentSession = {
   date:        string
   durationMin: number
   totalSets:   number
+  exercises:   string[]
 }
 
 type MuscleBalance = {
@@ -69,7 +70,7 @@ function buildSystemPrompt(
 ): string {
   const sessions = ctx.recentSessions.length
     ? ctx.recentSessions
-        .map((s) => `  - ${s.date}: ${s.durationMin} min | ${s.totalSets} sets completados`)
+        .map((s) => `  - ${s.date}: ${s.durationMin} min | ${s.totalSets} sets completados | Ejercicios: ${s.exercises.join(', ')}`)
         .join('\n')
     : '  Sin sesiones registradas aun.'
 
@@ -129,7 +130,13 @@ export function useUserContext(): { context: UserContext | null; loading: boolea
       // ── Query 1: Últimas 7 sesiones completadas ──────────────
       const { data: sessions } = await supabase
         .from('sessions')
-        .select('id, session_date, start_time, end_time, session_exercises(completed_sets)')
+        .select(`
+          id, session_date, start_time, end_time, 
+          session_exercises(
+            completed_sets, 
+            exercises_catalog(name)
+          )
+        `)
         .eq('user_id', userId!)
         .eq('status', 'completed')
         .order('session_date', { ascending: false })
@@ -144,10 +151,17 @@ export function useUserContext(): { context: UserContext | null; loading: boolea
               (new Date(s.end_time).getTime() - new Date(s.start_time).getTime()) / 60000
             )
           : 0
+
+        const exercisesList = (s.session_exercises ?? [])
+          .filter((ex: any) => (ex.completed_sets ?? 0) > 0)
+          .map((ex: any) => ex.exercises_catalog?.name)
+          .filter(Boolean)
+
         return {
           date:        s.session_date ?? '',
           durationMin,
           totalSets,
+          exercises:   exercisesList,
         }
       })
 
