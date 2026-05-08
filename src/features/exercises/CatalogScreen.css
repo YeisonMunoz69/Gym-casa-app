@@ -16,8 +16,45 @@
   animation: fade-in var(--transition-base) ease;
 }
 
-.catalog-screen__progress {
+.catalog-screen__progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
   margin-bottom: var(--space-2);
+}
+
+.catalog-tabs {
+  display: flex;
+  background: var(--glass-bg-strong);
+  padding: var(--space-1);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+}
+
+.catalog-tab-btn {
+  flex: 1;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-tertiary);
+  transition: all var(--transition-fast);
+  text-align: center;
+}
+
+.catalog-tab-btn:hover {
+  color: var(--color-text-secondary);
+}
+
+.catalog-tab-btn--active {
+  background: var(--color-primary);
+  color: var(--color-bg);
+  font-weight: var(--weight-bold);
+  box-shadow: 0 0 10px var(--color-primary-glow);
+}
+
+.catalog-tab-content {
+  width: 100%;
 }
 
 .catalog-screen__header {

@@ -151,6 +151,42 @@ export async function addRoutineDay(
   return { data: data as RoutineDayRow, error: null }
 }
 
+export async function addRoutineDayWithCopy(
+  routineId: string,
+  weekday: number,
+  sourceDayId: string,
+): Promise<{ data: RoutineDayRow | null; error: string | null }> {
+  // 1. Create the new day
+  const { data: newDay, error: dayErr } = await addRoutineDay(routineId, weekday)
+  if (dayErr || !newDay) return { data: null, error: dayErr }
+
+  // 2. Load source exercises
+  const { data: exercises, error: exErr } = await loadDayExercises(sourceDayId)
+  if (exErr || !exercises || exercises.length === 0) return { data: newDay, error: null }
+
+  // 3. Insert copied exercises
+  const payloads = exercises.map(ex => ({
+    routine_day_id: newDay.id,
+    exercise_id: ex.exercise_id,
+    order_index: ex.order_index,
+    target_sets: ex.target_sets,
+    rep_min: ex.rep_min,
+    rep_max: ex.rep_max,
+    rir_target: ex.rir_target,
+    rest_seconds: ex.rest_seconds,
+    rest_between_exercises_seconds: ex.rest_between_exercises_seconds,
+    notes: ex.notes,
+    warmup_sets: ex.warmup_sets,
+    is_time_based: ex.is_time_based,
+    target_time_seconds: ex.target_time_seconds
+  }))
+
+  const { error: insertErr } = await supabase.from('routine_exercises').insert(payloads)
+  if (insertErr) return { data: newDay, error: insertErr.message }
+
+  return { data: newDay, error: null }
+}
+
 export async function removeRoutineDay(
   dayId: string,
 ): Promise<{ error: string | null }> {

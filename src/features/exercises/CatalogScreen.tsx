@@ -12,6 +12,7 @@ import { HamsterLoader } from '../../components/ui/HamsterLoader'
 import { Button } from '../../components/ui/Button'
 import { IconButton } from '../../components/ui/IconButton'
 import { ProgressByExercise } from '../dashboard/components/ProgressByExercise'
+import { RecoveryBodyMap } from '../dashboard/components/RecoveryBodyMap'
 import { BodyMap, BODY_MUSCLE_SEARCH } from '../routines/components/BodyMap'
 import type { BodyMuscle } from '../routines/components/BodyMap'
 import { ExercisePreview } from '../routines/components/ExercisePreview'
@@ -69,6 +70,7 @@ export function CatalogScreen() {
   const [bodyMapMuscle, setBodyMapMuscle] = useState<BodyMuscle | null>(null)
   const [previewExercise, setPreviewExercise] = useState<ExerciseCatalogRow | null>(null)
   const [showAddDialog, setShowAddDialog] = useState(false)
+  const [activeTab, setActiveTab] = useState<'progress' | 'recovery'>('progress')
 
   const filteredResults = useMemo(() => {
     let base = allResults
@@ -98,9 +100,25 @@ export function CatalogScreen() {
 
   return (
     <div className="catalog-screen">
-      {/* 1. Progresión por ejercicio en la parte superior (motivador) */}
-      <div className="catalog-screen__progress">
-        <ProgressByExercise />
+      {/* 1. Progresión y Recuperación en la parte superior */}
+      <div className="catalog-screen__progress-section">
+        <div className="catalog-tabs">
+          <button 
+            className={`catalog-tab-btn ${activeTab === 'progress' ? 'catalog-tab-btn--active' : ''}`}
+            onClick={() => setActiveTab('progress')}
+          >
+            Progresión
+          </button>
+          <button 
+            className={`catalog-tab-btn ${activeTab === 'recovery' ? 'catalog-tab-btn--active' : ''}`}
+            onClick={() => setActiveTab('recovery')}
+          >
+            Recuperación
+          </button>
+        </div>
+        <div className="catalog-tab-content">
+          {activeTab === 'progress' ? <ProgressByExercise /> : <RecoveryBodyMap />}
+        </div>
       </div>
 
       <div className="catalog-screen__header">

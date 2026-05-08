@@ -88,7 +88,7 @@ export function DayExerciseList({ dayId, dayLabel, routineDays }: DayExerciseLis
       // Ocultar hoja y mostrar seleccion de dias
       setSheetOpen(false)
       if (previewExercise) setPreviewExercise(null)
-      
+
       // Preseleccionar el dia actual
       setSelectedDayIds(new Set([dayId]))
       setMultiDayAddEx(catalogExercise)
@@ -235,17 +235,17 @@ export function DayExerciseList({ dayId, dayLabel, routineDays }: DayExerciseLis
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', marginBottom: 'var(--space-6)' }}>
               {routineDays.sort((a, b) => a.weekday - b.weekday).map(d => (
-                <label 
-                  key={d.id} 
-                  style={{ 
-                    display: 'flex', alignItems: 'center', gap: 'var(--space-3)', 
-                    padding: 'var(--space-3)', background: 'var(--color-surface)', 
+                <label
+                  key={d.id}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
+                    padding: 'var(--space-3)', background: 'var(--color-surface)',
                     borderRadius: 'var(--radius-md)', cursor: 'pointer',
                     border: selectedDayIds.has(d.id) ? '1px solid var(--color-primary)' : '1px solid var(--color-border)'
                   }}
                 >
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={selectedDayIds.has(d.id)}
                     onChange={(e) => {
                       const newSet = new Set(selectedDayIds)

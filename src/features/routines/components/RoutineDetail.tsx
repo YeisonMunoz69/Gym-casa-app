@@ -4,7 +4,7 @@ import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
 import { IconButton } from '../../../components/ui/IconButton'
 import { Button } from '../../../components/ui/Button'
 import { showToast } from '../../../components/ui/Toast'
-import { addRoutineDay, removeRoutineDay, renameRoutine } from '../../../services/routines.service'
+import { addRoutineDay, removeRoutineDay, renameRoutine, addRoutineDayWithCopy } from '../../../services/routines.service'
 import { DayExerciseList } from './DayExerciseList'
 import { ShareRoutineModal } from './ShareRoutineModal'
 import { HelpVideoButton } from '../../../components/ui/HelpVideo/HelpVideoButton'
@@ -25,6 +25,8 @@ export function RoutineDetail({ routine, onBack, onRoutineChanged }: RoutineDeta
   const [renameOpen, setRenameOpen] = useState(false)
   const [renameDraft, setRenameDraft] = useState('')
   const [renaming, setRenaming] = useState(false)
+  const [pendingAddDay, setPendingAddDay] = useState<number | null>(null)
+  
   const sortedDays = [...routine.routine_days].sort((a, b) => a.weekday - b.weekday)
   const assignedWeekdays = routine.routine_days.map((d) => d.weekday)
   const availableWeekdays = [0, 1, 2, 3, 4, 5, 6].filter(
@@ -71,6 +73,24 @@ export function RoutineDetail({ routine, onBack, onRoutineChanged }: RoutineDeta
       showToast('Rutina renombrada', 'success')
       setRenameOpen(false)
       onRoutineChanged()
+    }
+  }
+
+  async function handleConfirmAddDay(copy: boolean) {
+    if (pendingAddDay === null) return
+    const weekday = pendingAddDay
+    setPendingAddDay(null)
+    
+    if (copy && selectedDay) {
+      const { error } = await addRoutineDayWithCopy(routine.id, weekday, selectedDay.id)
+      if (error) {
+        showToast('Error al copiar día', 'error')
+      } else {
+        showToast(`${WEEKDAY_LABELS[weekday]} agregado con copia`, 'success')
+        onRoutineChanged()
+      }
+    } else {
+      handleAddDay(weekday)
     }
   }
 
@@ -124,7 +144,14 @@ export function RoutineDetail({ routine, onBack, onRoutineChanged }: RoutineDeta
               <select
                 className="routine-detail__day-select"
                 value=""
-                onChange={(e) => handleAddDay(Number(e.target.value))}
+                onChange={(e) => {
+                  const weekday = Number(e.target.value)
+                  if (selectedDay) {
+                    setPendingAddDay(weekday)
+                  } else {
+                    handleAddDay(weekday)
+                  }
+                }}
               >
                 <option value="" disabled>Agregar dia...</option>
                 {availableWeekdays.map((w) => (
@@ -206,6 +233,40 @@ export function RoutineDetail({ routine, onBack, onRoutineChanged }: RoutineDeta
                 disabled={renaming || !renameDraft.trim()}
               >
                 Guardar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pendingAddDay !== null && selectedDay && (
+        <div className="clone-dialog-overlay" role="dialog" aria-modal="true" aria-label="Copiar día">
+          <div className="clone-dialog">
+            <h2 className="clone-dialog__title">Agregar día</h2>
+            <p className="clone-dialog__desc">
+              ¿Quieres copiar los ejercicios del <strong>{WEEKDAY_LABELS[selectedDay.weekday]}</strong> a tu nuevo día <strong>{WEEKDAY_LABELS[pendingAddDay]}</strong>?
+            </p>
+            <div className="clone-dialog__actions" style={{ flexDirection: 'column', gap: 'var(--space-2)', marginTop: 'var(--space-4)' }}>
+              <Button
+                variant="primary"
+                fullWidth
+                onClick={() => handleConfirmAddDay(true)}
+              >
+                Sí, copiar ejercicios
+              </Button>
+              <Button
+                variant="secondary"
+                fullWidth
+                onClick={() => handleConfirmAddDay(false)}
+              >
+                No, agregar vacío
+              </Button>
+              <Button
+                variant="ghost"
+                fullWidth
+                onClick={() => setPendingAddDay(null)}
+              >
+                Cancelar
               </Button>
             </div>
           </div>

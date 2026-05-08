@@ -1,0 +1,153 @@
+/* ============================================================
+   RecoveryBodyMap.css
+   ============================================================ */
+
+.recovery-map {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.recovery-map__loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  width: 100%;
+}
+
+.recovery-map__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.recovery-map__title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.recovery-map__legend {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-2);
+  background: var(--glass-bg-strong);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.recovery-map__canvas {
+  position: relative;
+  width: 100%;
+  background: var(--glass-bg);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--glass-border);
+  padding: var(--space-4);
+}
+
+.recovery-map__empty {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  text-align: center;
+}
+
+.recovery-tooltip {
+  position: absolute;
+  width: 170px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--color-primary-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  pointer-events: none; /* No bloquear clicks al mapa */
+  z-index: 10;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+  animation: fade-in 0.2s ease-out;
+}
+
+.recovery-info__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-primary);
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: var(--space-2);
+}
+
+.recovery-info__header h4 {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  margin: 0;
+}
+
+.recovery-info__details {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.recovery-info__details p {
+  margin: 0;
+}
+
+/* ============================================================
+   Sobrescribiendo body-muscles para forzar colores personalizados
+   ============================================================ */
+
+/* 1. Base verde (Recuperado) para TODOS los músculos */
+.recovery-map__canvas .svg-wrapper path {
+  fill: rgba(16, 185, 129, 0.2) !important; /* var(--color-success) suave */
+  stroke: var(--glass-border) !important;
+  stroke-width: 0.5px !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Hover base */
+.recovery-map__canvas .svg-wrapper path:hover {
+  fill: rgba(16, 185, 129, 0.5) !important;
+}
+
+/* 2. Recuperado explícito (intensity 2) */
+.recovery-map__canvas .svg-wrapper path[aria-label*="intensity 2"] {
+  fill: rgba(16, 185, 129, 0.8) !important; /* var(--color-success) más fuerte */
+  filter: drop-shadow(0 0 3px rgba(16, 185, 129, 0.5)) !important;
+}
+
+/* 3. En recuperación (intensity 5) */
+.recovery-map__canvas .svg-wrapper path[aria-label*="intensity 5"] {
+  fill: var(--color-warning) !important;
+  filter: drop-shadow(0 0 4px var(--color-warning)) !important;
+}
+
+/* 4. Exhausto (intensity 9) */
+.recovery-map__canvas .svg-wrapper path[aria-label*="intensity 9"] {
+  fill: var(--color-danger) !important;
+  filter: drop-shadow(0 0 5px var(--color-danger)) !important;
+}
