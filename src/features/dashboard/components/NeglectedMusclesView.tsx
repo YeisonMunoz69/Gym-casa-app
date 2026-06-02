@@ -25,14 +25,15 @@ const GROUP_MAPPING: Record<string, string[]> = {
   chest:      ['chest-upper-left','chest-upper-right','chest-lower-left','chest-lower-right'],
   upper_back: ['lats-upper-left','lats-mid-left','lats-lower-left','lats-upper-right','lats-mid-right','lats-lower-right','spine'],
   lower_back: ['lower-back-erectors-left','lower-back-ql-left','lower-back-erectors-right','lower-back-ql-right'],
+  trapezius:  ['traps-upper-left','traps-mid-left','traps-lower-left','traps-upper-right','traps-mid-right','traps-lower-right'],
   deltoids:   ['shoulder-front-left','shoulder-front-right','shoulder-side-left','shoulder-side-right','deltoid-rear-left','deltoid-rear-right'],
   biceps:     ['biceps-left','biceps-right'],
   triceps:    ['triceps-long-left','triceps-lateral-left','triceps-long-right','triceps-lateral-right'],
   quadriceps: ['quads-left','quads-right','adductors-left','adductors-right','hip-flexor-left','hip-flexor-right'],
+  hamstrings: ['hamstrings-medial-left','hamstrings-lateral-left','hamstrings-medial-right','hamstrings-lateral-right'],
+  gluteals:   ['gluteus-medius-left','gluteus-maximus-left','gluteus-medius-right','gluteus-maximus-right'],
+  calves:     ['calves-gastroc-medial-left','calves-gastroc-lateral-left','calves-soleus-left','calves-gastroc-medial-right','calves-gastroc-lateral-right','calves-soleus-right','tibialis-anterior-left','tibialis-anterior-right'],
 }
-
-// Solo los 7 grupos con calibración confiable (≥30 sesiones, threshold ≤45d)
-const CALIBRATED_GROUPS = Object.keys(GROUP_MAPPING)
 
 function buildBodyState(neglectedSet: Set<string>): BodyState {
   const state: BodyState = {}
@@ -103,7 +104,7 @@ export function NeglectedMusclesView() {
             <p>Detecta músculos que llevan más días <em>sin entrenarse</em> que su umbral estadístico.</p>
             <p>Los umbrales se calcularon del <strong>percentil P75</strong> de los intervalos de descanso en el dataset <strong>joep89/weightlifting</strong> (721 sesiones reales).</p>
             <p><strong>Naranja</strong> = descuidado · <strong>Verde</strong> = al día · <strong>Gris</strong> = sin datos suficientes.</p>
-            <p>Solo se muestran los <strong>7 grupos musculares</strong> con calibración estadísticamente confiable (≥30 sesiones, umbral ≤45 días).</p>
+            <p>Solo se muestran los <strong>5-6 grupos musculares</strong> con calibración estadísticamente confiable (≥30 sesiones, umbral ≤45 días).</p>
           </AIInfoBadge>
         </div>
 
