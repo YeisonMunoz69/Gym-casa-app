@@ -7,7 +7,7 @@
    (Regresión lineal v2.0, consenso 4 fórmulas de la literatura)
    ============================================================ */
 import { useEffect, useState, useCallback } from 'react'
-import { TrendingUp, TrendingDown, Minus, Dumbbell, ChevronDown, ChevronUp, X, LineChart, ImageIcon } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, Dumbbell, ChevronDown, ChevronUp, X, LineChart } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { supabase } from '../../../services/supabase'
 import { useAuthStore } from '../../../stores/authStore'

@@ -164,6 +164,14 @@ Estima el 1 Rep Max (peso máximo una vez) con coeficientes calibrados por grupo
 - Target: consenso de Epley + Brzycki + Lander + O'Conner
 - R² global: **0.9946** | MAE: **3.64 kg**
 
+### Gráfica de Equivalencia (Curva 1RM)
+El componente `OneRMChart.tsx` grafica matemáticamente la curva de equivalencia despejando dinámicamente la ecuación de la regresión. 
+Dado el `1RM` actual del usuario, calcula para cada número de repeticiones (eje X) el peso requerido (eje Y) para alcanzar esa misma intensidad teórica.
+```typescript
+// Fórmula despejada para la gráfica
+const equivWeight = (current1RM - intercept - coefB * reps) / coefA
+```
+
 ---
 
 ## Notas para despliegue

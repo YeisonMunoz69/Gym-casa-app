@@ -77,13 +77,23 @@ function getStateColor(state: MuscleState): string {
 }
 
 /**
- * Convierte el score continuo 0-100 a la intensidad 0-10 que usa
- * la librer\u00eda body-muscles para colorear el SVG.
- * Score=100 (m\u00e1xima fatiga) → intensidad=10 (rojo brillante)
- * Score=0   (recuperado)      → intensidad=0  (sin color)
+ * Convierte el estado y score a la intensidad 0-10 que usa
+ * la librería body-muscles para colorear el SVG (amarillo -> rojo).
+ * Si está recuperado, retorna 0 para usar el estilo verde base (CSS).
  */
-function getIntensityFromScore(score: number): number {
-  return Math.round(Math.min(10, score / 10))
+function getIntensityFromState(state: MuscleState, score: number): number {
+  if (state === 'recovered') return 0; // Verde suave base (sin color inline)
+  
+  if (state === 'recovering') {
+    // Rango aprox de recovering: 9.2 a 39.3 -> Mapear a intensidad 1 a 6 (amarillo a naranja)
+    const p = Math.max(0, Math.min(1, (score - 9.2) / (39.3 - 9.2)));
+    return Math.round(1 + p * 5);
+  }
+  
+  // exhausted
+  // Rango exhausted: 39.3 a 100 -> Mapear a intensidad 7 a 10 (rojo a rojo oscuro)
+  const p = Math.max(0, Math.min(1, (score - 39.3) / (100 - 39.3)));
+  return Math.round(7 + p * 3);
 }
 
 export function RecoveryBodyMap() {
@@ -99,8 +109,8 @@ export function RecoveryBodyMap() {
   if (!loading) {
     for (const [group, data] of Object.entries(recoveryData)) {
       if (GROUP_MAPPING[group]) {
-        // v2.0: intensidad proporcional al score ATL continuo (0-100 → 0-10)
-        const intensity = getIntensityFromScore(data.score ?? 0)
+        // v2.0: intensidad mapeada exactamente al estado semántico
+        const intensity = getIntensityFromState(data.state, data.score ?? 0)
         GROUP_MAPPING[group].forEach(id => {
           bodyState[id] = { selected: true, intensity }
         })
