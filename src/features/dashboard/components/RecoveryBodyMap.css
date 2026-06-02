@@ -137,47 +137,27 @@
 }
 
 /* ============================================================
-   Estilos SVG del body map — intensidad continua 0-10
-   (v2.0: score ATL proporcional, no 3 estados discretos)
+   Estilos SVG del body map
    ============================================================ */
 
-/* Base: todos los músculos sin datos → verde muy suave */
-.recovery-map__canvas .svg-wrapper path {
+/* Base: todos los músculos sin datos o recuperados (intensity=0) */
+.recovery-map__canvas .svg-wrapper path:not([aria-label*="intensity"]) {
   fill: rgba(16, 185, 129, 0.12) !important;
   stroke: var(--glass-border) !important;
   stroke-width: 0.5px !important;
   transition: all 0.35s ease !important;
 }
 
-.recovery-map__canvas .svg-wrapper path:hover {
+.recovery-map__canvas .svg-wrapper path:not([aria-label*="intensity"]):hover {
   fill: rgba(16, 185, 129, 0.35) !important;
 }
 
-/* ── Niveles de fatiga: score 1-3 → verde (recuperado) ───── */
-.recovery-map__canvas .svg-wrapper path[aria-label*="intensity 1"],
-.recovery-map__canvas .svg-wrapper path[aria-label*="intensity 2"],
-.recovery-map__canvas .svg-wrapper path[aria-label*="intensity 3"] {
-  fill: rgba(16, 185, 129, 0.7) !important;
-  filter: drop-shadow(0 0 3px rgba(16, 185, 129, 0.4)) !important;
-}
-
-/* ── Niveles de fatiga: score 4-6 → amarillo (recuperando) ── */
-.recovery-map__canvas .svg-wrapper path[aria-label*="intensity 4"],
-.recovery-map__canvas .svg-wrapper path[aria-label*="intensity 5"],
-.recovery-map__canvas .svg-wrapper path[aria-label*="intensity 6"] {
-  fill: var(--color-warning) !important;
-  opacity: 0.82;
-  filter: drop-shadow(0 0 4px var(--color-warning)) !important;
-}
-
-/* ── Niveles de fatiga: score 7-10 → rojo (exhausto) ──────── */
-.recovery-map__canvas .svg-wrapper path[aria-label*="intensity 7"],
-.recovery-map__canvas .svg-wrapper path[aria-label*="intensity 8"],
-.recovery-map__canvas .svg-wrapper path[aria-label*="intensity 9"],
-.recovery-map__canvas .svg-wrapper path[aria-label*="intensity 10"] {
-  fill: var(--color-danger) !important;
-  opacity: 0.9;
-  filter: drop-shadow(0 0 5px var(--color-danger)) !important;
+/* Músculos con fatiga (intensity > 0) */
+/* Se respeta el "fill" inline de la librería (amarillo a rojo) */
+.recovery-map__canvas .svg-wrapper path[aria-label*="intensity"] {
+  stroke: var(--glass-border) !important;
+  stroke-width: 0.5px !important;
+  opacity: 0.9 !important;
 }
 
 /* ── Músculos Descuidados ─────────────────────────────────── */

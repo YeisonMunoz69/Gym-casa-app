@@ -7,13 +7,14 @@
    (Regresión lineal v2.0, consenso 4 fórmulas de la literatura)
    ============================================================ */
 import { useEffect, useState, useCallback } from 'react'
-import { TrendingUp, TrendingDown, Minus, Dumbbell, ChevronDown, ChevronUp, X } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, Dumbbell, ChevronDown, ChevronUp, X, LineChart, ImageIcon } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { supabase } from '../../../services/supabase'
 import { useAuthStore } from '../../../stores/authStore'
 import { useOneRM } from '../hooks/useOneRM'
 import { AIInfoBadge } from '../../../components/ui/AIInfoBadge'
 import { HamsterLoader } from '../../../components/ui/HamsterLoader'
+import { OneRMChart } from './OneRMChart'
 import './OneRMCard.css'
 
 // ─── Tipos ───────────────────────────────────────────────────
@@ -56,7 +57,7 @@ type OneRMCardProps = {
 // ─── Componente principal ─────────────────────────────────────
 
 export function OneRMCard({ collapsible = false }: OneRMCardProps) {
-  const { estimateOneRM, loading: modelLoading } = useOneRM()
+  const { estimateOneRM, config, loading: modelLoading } = useOneRM()
   const userId = useAuthStore(s => s.user?.id)
   const [exercises, setExercises] = useState<ExerciseRM[]>([])
   const [loading, setLoading]     = useState(true)
@@ -207,7 +208,7 @@ export function OneRMCard({ collapsible = false }: OneRMCardProps) {
   // ── Render principal ────────────────────────────────────────
   return (
     <>
-      {selected && <ExerciseModal ex={selected} onClose={closeModal} />}
+      {selected && <ExerciseModal ex={selected} config={config} onClose={closeModal} />}
 
       <div className={`one-rm-card${collapsible ? ' one-rm-card--collapsible' : ''}`}>
 
@@ -301,8 +302,9 @@ export function OneRMCard({ collapsible = false }: OneRMCardProps) {
 
 const DESC_LIMIT = 140   // caracteres antes de "leer más"
 
-function ExerciseModal({ ex, onClose }: { ex: ExerciseRM; onClose: () => void }) {
+function ExerciseModal({ ex, config, onClose }: { ex: ExerciseRM; config: any; onClose: () => void }) {
   const [expanded, setExpanded] = useState(false)
+  const [viewMode, setViewMode] = useState<'image' | 'chart'>('image')
 
   const diff = ex.one_rm_prev != null ? ex.one_rm - ex.one_rm_prev : null
   const pct  = (diff != null && ex.one_rm_prev && ex.one_rm_prev > 0)
@@ -313,76 +315,121 @@ function ExerciseModal({ ex, onClose }: { ex: ExerciseRM; onClose: () => void })
   const isLong       = desc.length > DESC_LIMIT
   const displayedDesc = !expanded && isLong ? desc.slice(0, DESC_LIMIT).trimEnd() + '…' : desc
 
+  // Obtener coeficientes del modelo para el músculo actual
+  const muscleGroup = ex.muscle_group
+  const coefs = (config && muscleGroup && config.by_muscle_group[muscleGroup]?.calibrated)
+    ? config.by_muscle_group[muscleGroup]
+    : config?.global_model
+
   return createPortal(
     <div className="ex-modal__overlay" onClick={onClose}>
       <div className="ex-modal" onClick={e => e.stopPropagation()}>
-
-        {/* Header */}
-        <div className="ex-modal__header">
-          <h3 className="ex-modal__title">{ex.exercise_name}</h3>
-          <button className="ex-modal__close" onClick={onClose} aria-label="Cerrar">
-            <X size={18} />
-          </button>
-        </div>
-
-        {/* Imagen / GIF — tamaño natural, no recortado */}
-        {ex.image_url ? (
-          <div className="ex-modal__img-wrap">
-            <img
-              src={ex.image_url}
-              alt={ex.exercise_name}
-              className="ex-modal__img"
-              loading="lazy"
-            />
-          </div>
-        ) : (
-          <div className="ex-modal__img-placeholder">
-            <Dumbbell size={40} strokeWidth={1.2} />
-          </div>
-        )}
-
-        {/* Stats: 1RM / Mejor Set / Tendencia */}
-        <div className="ex-modal__stats">
-          <div className="ex-modal__stat">
-            <span className="ex-modal__stat-label">1RM Est.</span>
-            <span className="ex-modal__stat-value">{ex.one_rm} kg</span>
-          </div>
-          <div className="ex-modal__stat">
-            <span className="ex-modal__stat-label">Mejor Set</span>
-            <span className="ex-modal__stat-value">{ex.best_set_kg} kg × {ex.best_set_reps}</span>
-          </div>
-          {pct != null && (
-            <div className="ex-modal__stat">
-              <span className="ex-modal__stat-label">Tendencia</span>
-              <span className={`ex-modal__stat-value ex-modal__stat-value--${
-                pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat'
-              }`}>
-                {pct > 0 ? <TrendingUp size={13} /> :
-                 pct < 0 ? <TrendingDown size={13} /> :
-                 <Minus size={13} />}
-                {Math.abs(pct).toFixed(1)}%
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Descripción con "leer más" */}
-        {desc && (
-          <div className="ex-modal__desc-wrap">
-            <p className="ex-modal__description">{displayedDesc}</p>
-            {isLong && (
-              <button
-                className="ex-modal__read-more"
-                onClick={() => setExpanded(v => !v)}
-                type="button"
-              >
-                {expanded ? 'Leer menos' : 'Leer más'}
+        
+        {viewMode === 'chart' && coefs ? (
+          /* ─── VISTA: GRÁFICA 1RM ─── */
+          <>
+            <div className="ex-modal__header">
+              <h3 className="ex-modal__title">Curva 1RM: {ex.exercise_name}</h3>
+              <button className="ex-modal__close" onClick={onClose} aria-label="Cerrar">
+                <X size={18} />
               </button>
-            )}
-          </div>
-        )}
+            </div>
+            
+            <div className="ex-modal__chart-wrap ex-modal__chart-wrap--large">
+              <OneRMChart 
+                coefA={coefs.coef_a}
+                coefB={coefs.coef_b}
+                intercept={coefs.intercept}
+                current1RM={ex.one_rm}
+                bestSetKg={ex.best_set_kg}
+                bestSetReps={ex.best_set_reps}
+              />
+            </div>
+            
+            <button className="ex-modal__dismiss ex-modal__dismiss--back" onClick={() => setViewMode('image')}>
+              Volver a Detalles
+            </button>
+          </>
+        ) : (
+          /* ─── VISTA: DETALLES DEL EJERCICIO ─── */
+          <>
+            <div className="ex-modal__header">
+              <h3 className="ex-modal__title">{ex.exercise_name}</h3>
+              
+              <div className="ex-modal__actions">
+                {coefs && (
+                  <button 
+                    className="ex-modal__action-btn"
+                    onClick={() => setViewMode('chart')}
+                    aria-label="Ver gráfica de regresión"
+                    title="Curva de Equivalencia 1RM"
+                  >
+                    <LineChart size={18} />
+                  </button>
+                )}
+                <button className="ex-modal__close" onClick={onClose} aria-label="Cerrar">
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
 
-        <button className="ex-modal__dismiss" onClick={onClose}>Cerrar</button>
+            {ex.image_url ? (
+              <div className="ex-modal__img-wrap">
+                <img
+                  src={ex.image_url}
+                  alt={ex.exercise_name}
+                  className="ex-modal__img"
+                  loading="lazy"
+                />
+              </div>
+            ) : (
+              <div className="ex-modal__img-placeholder">
+                <Dumbbell size={40} strokeWidth={1.2} />
+              </div>
+            )}
+
+            <div className="ex-modal__stats">
+              <div className="ex-modal__stat">
+                <span className="ex-modal__stat-label">1RM Est.</span>
+                <span className="ex-modal__stat-value">{ex.one_rm} kg</span>
+              </div>
+              <div className="ex-modal__stat">
+                <span className="ex-modal__stat-label">Mejor Set</span>
+                <span className="ex-modal__stat-value">{ex.best_set_kg} kg × {ex.best_set_reps}</span>
+              </div>
+              {pct != null && (
+                <div className="ex-modal__stat">
+                  <span className="ex-modal__stat-label">Tendencia</span>
+                  <span className={`ex-modal__stat-value ex-modal__stat-value--${
+                    pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat'
+                  }`}>
+                    {pct > 0 ? <TrendingUp size={13} /> :
+                     pct < 0 ? <TrendingDown size={13} /> :
+                     <Minus size={13} />}
+                    {Math.abs(pct).toFixed(1)}%
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {desc && (
+              <div className="ex-modal__desc-wrap">
+                <p className="ex-modal__description">{displayedDesc}</p>
+                {isLong && (
+                  <button
+                    className="ex-modal__read-more"
+                    onClick={() => setExpanded(v => !v)}
+                    type="button"
+                  >
+                    {expanded ? 'Leer menos' : 'Leer más'}
+                  </button>
+                )}
+              </div>
+            )}
+
+            <button className="ex-modal__dismiss" onClick={onClose}>Cerrar</button>
+          </>
+        )}
       </div>
     </div>,
     document.body,
