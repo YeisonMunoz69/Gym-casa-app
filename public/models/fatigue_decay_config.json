@@ -1,0 +1,132 @@
+{
+  "model_name": "fatigue_decay",
+  "model_version": "1.0.0",
+  "description": "Modelo de decaimiento exponencial (Banister ATL) para fatiga muscular. Calibrado estad\u00edsticamente por grupo muscular usando joep89/weightlifting (721 sesiones reales). Produce un score continuo 0-100 por grupo muscular. Reemplaza los thresholds de 2 d\u00edas / 4 sets en useMuscleRecovery.ts.",
+  "model_type": "banister_atl_exponential_decay",
+  "formula": "fatiga(t) = sum(vol_i * exp(-days_since_i / tau)) / max_atl_p95 * 100",
+  "dataset": "joep89/weightlifting",
+  "frontend_usage": [
+    "v2/src/features/dashboard/hooks/useMuscleRecovery.ts",
+    "v2/src/features/dashboard/components/RecoveryBodyMap.tsx"
+  ],
+  "score_thresholds": {
+    "exhausted_above": 39.3,
+    "recovering_above": 9.2,
+    "recovered_below": 9.2,
+    "note": "Score continuo 0-100. >p66 = exhausted, p33-p66 = recovering, <p33 = recovered"
+  },
+  "muscle_groups": {
+    "chest": {
+      "tau_days": 0.63,
+      "max_atl_p95": 56.41,
+      "n_sessions": 212,
+      "calibrated": true,
+      "r2_correlation": 0.0034
+    },
+    "upper_back": {
+      "tau_days": 0.63,
+      "max_atl_p95": 76.9,
+      "n_sessions": 198,
+      "calibrated": true,
+      "r2_correlation": 0.0066
+    },
+    "lower_back": {
+      "tau_days": 3.68,
+      "max_atl_p95": 2510.9,
+      "n_sessions": 84,
+      "calibrated": true,
+      "r2_correlation": 0.0125
+    },
+    "trapezius": {
+      "tau_days": 7.0,
+      "max_atl_p95": 3509.32,
+      "n_sessions": 8,
+      "calibrated": true,
+      "r2_correlation": 0.659
+    },
+    "deltoids": {
+      "tau_days": 1.03,
+      "max_atl_p95": 1185.31,
+      "n_sessions": 200,
+      "calibrated": true,
+      "r2_correlation": 0.0461
+    },
+    "biceps": {
+      "tau_days": 7.0,
+      "max_atl_p95": 4239.97,
+      "n_sessions": 155,
+      "calibrated": true,
+      "r2_correlation": 0.0912
+    },
+    "triceps": {
+      "tau_days": 5.81,
+      "max_atl_p95": 1658.4,
+      "n_sessions": 38,
+      "calibrated": true,
+      "r2_correlation": 0.1942
+    },
+    "abdominals": {
+      "tau_days": 2.0,
+      "max_atl_p95": 100.0,
+      "n_sessions": 0,
+      "calibrated": false,
+      "r2_correlation": 0.0
+    },
+    "obliques": {
+      "tau_days": 2.0,
+      "max_atl_p95": 100.0,
+      "n_sessions": 0,
+      "calibrated": false,
+      "r2_correlation": 0.0
+    },
+    "quadriceps": {
+      "tau_days": 3.29,
+      "max_atl_p95": 7929.64,
+      "n_sessions": 173,
+      "calibrated": true,
+      "r2_correlation": 0.0169
+    },
+    "hamstrings": {
+      "tau_days": 2.0,
+      "max_atl_p95": 100.0,
+      "n_sessions": 0,
+      "calibrated": false,
+      "r2_correlation": 0.0
+    },
+    "gluteals": {
+      "tau_days": 2.0,
+      "max_atl_p95": 100.0,
+      "n_sessions": 5,
+      "calibrated": false,
+      "r2_correlation": 0.0
+    },
+    "calves": {
+      "tau_days": 2.0,
+      "max_atl_p95": 100.0,
+      "n_sessions": 0,
+      "calibrated": false,
+      "r2_correlation": 0.0
+    },
+    "forearms": {
+      "tau_days": 2.0,
+      "max_atl_p95": 100.0,
+      "n_sessions": 0,
+      "calibrated": false,
+      "r2_correlation": 0.0
+    },
+    "neck": {
+      "tau_days": 2.0,
+      "max_atl_p95": 100.0,
+      "n_sessions": 0,
+      "calibrated": false,
+      "r2_correlation": 0.0
+    }
+  },
+  "global_stats": {
+    "total_sessions_analyzed": 1073,
+    "muscles_calibrated": 8,
+    "muscles_default_tau": 7,
+    "global_tau_mean": 3.63,
+    "global_tau_std": 2.56
+  }
+}

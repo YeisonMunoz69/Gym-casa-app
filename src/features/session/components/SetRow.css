@@ -2,6 +2,7 @@
 
 .set-row {
   display: flex;
+  flex-wrap: wrap;          /* permite que .set-row__ai-row salte a nueva fila */
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
@@ -43,6 +44,7 @@
   display: flex;
   gap: var(--space-2);
   flex: 1;
+  align-items: flex-start;
 }
 
 .set-row__field {
@@ -50,6 +52,12 @@
   flex-direction: column;
   gap: 2px;
   flex: 1;
+}
+
+/* Wrapper de peso: solo contiene el campo KG (chip ya no va aquí) */
+.set-row__weight-wrapper {
+  flex: 1;
+  min-width: 0;
 }
 
 .set-row__field-label {
@@ -96,6 +104,16 @@
 
 .set-row__input--rir {
   max-width: 52px;
+}
+
+/* Fila completa del chip IA — debajo de los inputs, ocupa todo el ancho.
+   Al estar fuera de la fila principal (flex-wrap), no afecta la alineación
+   del número de set ni del botón de completar. */
+.set-row__ai-row {
+  width: 100%;                /* ancho completo para el wrap */
+  order: 10;                  /* siempre al final del flex container */
+  padding-left: calc(28px + var(--space-3)); /* alinear con los inputs (número de set + gap) */
+  margin-top: calc(-1 * var(--space-2)); /* reducir gap extra del flex-wrap */
 }
 
 /* Botón completar */

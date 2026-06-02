@@ -57,10 +57,10 @@ export function DashboardScreen() {
         muscularBalance={muscularBalance}
       />
 
-      {/* 6. Frase del día */}
+      {/* 5. Frase del día */}
       {showQuote && <DailyQuote />}
 
-      {/* 5. Heatmap de Consistencia */}
+      {/* 6. Heatmap de Consistencia */}
       <ConsistencyHeatmap heatmap={heatmap} />
 
 

@@ -7,6 +7,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { Check, Play, Square } from 'lucide-react'
 import { useSessionStore } from '../../../stores/sessionStore'
+import { WeightSuggestionChip } from './WeightSuggestionChip'
+import type { SuggestionStatus } from '../hooks/useWeightSuggestion'
 import type { SetDraft } from '../../../types/session'
 import './SetRow.css'
 
@@ -15,6 +17,9 @@ type SetRowProps = {
   isTimeBased?: boolean
   targetTimeSeconds?: number | null
   weightUnit?: string
+  suggestedWeight?: number | null
+  suggestedReps?: number | null      // v2.0: reps sugeridas por el modelo LSTM
+  suggestionStatus?: SuggestionStatus
   onUpdate: (updated: SetDraft) => void
   onComplete: (updated: SetDraft) => void
   onUncomplete: (draft: SetDraft) => void
@@ -25,7 +30,7 @@ function parseNumericInput(raw: string): number | null {
   return isNaN(n) ? null : n
 }
 
-export function SetRow({ draft, isTimeBased, targetTimeSeconds, weightUnit = 'kg', onUpdate, onComplete, onUncomplete }: SetRowProps) {
+export function SetRow({ draft, isTimeBased, targetTimeSeconds, weightUnit = 'kg', suggestedWeight, suggestedReps, suggestionStatus, onUpdate, onComplete, onUncomplete }: SetRowProps) {
   const [weight, setWeight] = useState(draft.weight?.toString() ?? '')
   const [reps, setReps] = useState(draft.reps?.toString() ?? '')
   const [rir, setRir] = useState(draft.rir?.toString() ?? '')
@@ -87,6 +92,13 @@ export function SetRow({ draft, isTimeBased, targetTimeSeconds, weightUnit = 'kg
     setRir(draft.rir?.toString() ?? '')
     setDurationSeconds(draft.durationSeconds?.toString() ?? '')
   }, [draft.setIndex]) // eslint-disable-line
+
+  // v2.0: autorellena peso y reps cuando el modelo los provee
+  function handleApplySuggestion(w: number, r: number | null) {
+    setWeight(w.toString())
+    if (r !== null && r > 0) setReps(r.toString())
+    onUpdate({ ...draft, weight: w, reps: r !== null && r > 0 ? r : draft.reps })
+  }
 
   function buildUpdatedDraft(explicitDuration?: string): SetDraft {
     return {
@@ -155,20 +167,22 @@ export function SetRow({ draft, isTimeBased, targetTimeSeconds, weightUnit = 'kg
       <span className="set-row__number">{displayNumber}</span>
 
       <div className="set-row__inputs">
-        <label className="set-row__field">
-          <span className="set-row__field-label">{weightUnit}</span>
-          <input
-            className="set-row__input"
-            type="number"
-            inputMode="decimal"
-            value={weight}
-            onChange={(e) => setWeight(e.target.value)}
-            onBlur={handleBlur}
-            placeholder="—"
-            disabled={isCompleted}
-            aria-label={`Peso serie ${setNumber}`}
-          />
-        </label>
+        <div className="set-row__weight-wrapper">
+          <label className="set-row__field">
+            <span className="set-row__field-label">{weightUnit}</span>
+            <input
+              className="set-row__input"
+              type="number"
+              inputMode="decimal"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              onBlur={handleBlur}
+              placeholder="—"
+              disabled={isCompleted}
+              aria-label={`Peso serie ${setNumber}`}
+            />
+          </label>
+        </div>
 
         {!isTimeBased ? (
           <>
@@ -230,6 +244,21 @@ export function SetRow({ draft, isTimeBased, targetTimeSeconds, weightUnit = 'kg
           </div>
         )}
       </div>
+
+      {/* Chip IA: fuera del weight-wrapper para no aumentar la altura
+          de la columna KG y desplazar el botón de completar.
+          Ocupa todo el ancho de los inputs como fila independiente. */}
+      {!isCompleted && suggestionStatus && (
+        <div className="set-row__ai-row">
+          <WeightSuggestionChip
+            suggestedWeight={suggestedWeight ?? null}
+            suggestedReps={suggestedReps ?? null}
+            status={suggestionStatus}
+            onApply={handleApplySuggestion}
+            weightUnit={weightUnit}
+          />
+        </div>
+      )}
 
       <button
         className={`set-row__complete-btn ${isCompleted ? 'set-row__complete-btn--active' : ''}`}

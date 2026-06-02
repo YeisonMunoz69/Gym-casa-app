@@ -7,6 +7,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Plus } from 'lucide-react'
 import { useSessionStore } from '../../../stores/sessionStore'
 import { useActiveSession } from '../hooks/useActiveSession'
+import { useBeforeUnload } from '../hooks/useBeforeUnload'
 import { SessionHeader } from './SessionHeader'
 import { ExerciseHeroCard } from './ExerciseHeroCard'
 import { SetTracker } from './SetTracker'
@@ -31,6 +32,11 @@ export function ActiveSessionView() {
   const startTimer = useSessionStore((s) => s.startTimer)
 
   const { finishSession, navigateNext, navigatePrev, abortSession, addBonusExercise } = useActiveSession()
+
+  // Proteger el progreso de la rutina ante recarga o cierre de pestaña.
+  // El browser mostrará su dialog nativo: "¿Salir? Los cambios no se guardarán".
+  // Se desactiva automáticamente cuando status cambia a 'done' o 'idle'.
+  useBeforeUnload(status === 'active')
 
   const [summaryData, setSummaryData] = useState<SessionSummaryData | null>(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)

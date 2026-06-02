@@ -28,11 +28,15 @@ if (!rootElement) {
 const router = createBrowserRouter(
   [{ path: '*', element: <App /> }],
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  { future: { v7_startTransition: true } as any },
+  { future: { v7_startTransition: true, v7_relativeSplatPath: true } as any },
 )
 
 createRoot(rootElement).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <RouterProvider
+      router={router}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      future={{ v7_startTransition: true } as any}
+    />
   </StrictMode>,
 )

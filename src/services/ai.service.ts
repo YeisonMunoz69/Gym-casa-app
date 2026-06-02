@@ -12,7 +12,7 @@ export type ChatMessage = {
   text: string
 }
 
-const GEMINI_MODEL = 'gemini-3.1-flash-lite-preview'
+const GEMINI_MODEL = 'gemini-1.5-flash'
 const GEMINI_BASE   = 'https://generativelanguage.googleapis.com/v1beta/models'
 
 function getApiKey(): string | null {
@@ -63,7 +63,7 @@ export async function generateMotivation(ctx: MotivationContext): Promise<string
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: buildMotivationPrompt(ctx) }] }],
+        contents: [{ role: 'user', parts: [{ text: buildMotivationPrompt(ctx) }] }],
         generationConfig: {
           temperature:     0.85,
           maxOutputTokens: 120,
@@ -128,7 +128,7 @@ export async function generateDailyQuote(): Promise<string | null> {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: buildQuotePrompt() }] }],
+        contents: [{ role: 'user', parts: [{ text: buildQuotePrompt() }] }],
         generationConfig: { temperature: 1.0, maxOutputTokens: 60 },
       }),
     })

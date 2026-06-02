@@ -1,0 +1,212 @@
+/* ============================================================
+   WeightSuggestionChip.css — v2.2 — respeta SKILL-DESIGN.md
+   Tokens: --color-*, --space-*, --radius-*, --text-*, --weight-*
+   Sin valores mágicos inline.
+   ============================================================ */
+
+/* ─── Contenedor principal ─────────────────────────────────── */
+.ai-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 3px var(--space-2);
+  margin-top: var(--space-1);
+  border-radius: var(--radius-full);
+  width: fit-content;
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+/* Brillo superior sutil */
+.ai-chip::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, hsla(0,0%,100%,0.05) 0%, transparent 55%);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ─── Variante: predicción completa ────────────────────────── */
+.ai-chip--full {
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary-glow);
+  box-shadow: 0 1px 6px var(--color-primary-glow);
+}
+
+/* ─── Variante: datos parciales ─────────────────────────────── */
+.ai-chip--partial {
+  background: hsla(40, 90%, 50%, 0.08);
+  border-color: hsla(40, 90%, 50%, 0.22);
+}
+
+/* ─── Variante: sin historial y cargando ────────────────────── */
+.ai-chip--no-data,
+.ai-chip--loading {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+/* ─── Icono cerebro ─────────────────────────────────────────── */
+.ai-chip__icon {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.ai-chip--full .ai-chip__icon     { color: var(--color-primary); }
+.ai-chip--partial .ai-chip__icon  { color: var(--color-warning); }
+.ai-chip--no-data .ai-chip__icon,
+.ai-chip--loading .ai-chip__icon  { color: var(--color-text-tertiary); }
+
+/* ─── Label ─────────────────────────────────────────────────── */
+.ai-chip__label {
+  font-size: 9px;
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.ai-chip--full .ai-chip__label    { color: var(--color-primary); opacity: 0.85; }
+.ai-chip--partial .ai-chip__label { color: var(--color-warning); opacity: 0.85; }
+.ai-chip--no-data .ai-chip__label,
+.ai-chip--loading .ai-chip__label { color: var(--color-text-tertiary); }
+
+/* Divisor entre label y valores */
+.ai-chip__divider {
+  width: 1px;
+  height: 10px;
+  background: var(--color-border);
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+/* ─── Botón de valores: peso × reps ─────────────────────────── */
+.ai-chip__values {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  line-height: 1;
+}
+
+.ai-chip__values:hover  { opacity: 0.72; }
+.ai-chip__values:active { opacity: 0.5; transform: scale(0.97); }
+
+/* Bloque individual: icono + número + unidad */
+.ai-chip__value-block {
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+}
+
+.ai-chip__value-icon {
+  opacity: 0.5;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.ai-chip--full .ai-chip__value-icon    { color: var(--color-primary); }
+.ai-chip--partial .ai-chip__value-icon { color: var(--color-warning); }
+
+.ai-chip__value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.01em;
+  line-height: 1;
+  color: var(--color-text-primary);
+}
+
+.ai-chip__unit {
+  font-size: 8px;
+  font-weight: var(--weight-medium);
+  margin-left: 1px;
+  opacity: 0.6;
+  color: var(--color-text-secondary);
+}
+
+/* Separador × */
+.ai-chip__sep {
+  font-size: 9px;
+  opacity: 0.4;
+  line-height: 1;
+  color: var(--color-text-tertiary);
+}
+
+/* Flecha de aplicar */
+.ai-chip__apply-hint {
+  font-size: 9px;
+  opacity: 0.45;
+  flex-shrink: 0;
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
+}
+
+.ai-chip--full .ai-chip__apply-hint    { color: var(--color-primary); }
+.ai-chip--partial .ai-chip__apply-hint { color: var(--color-warning); }
+
+.ai-chip__values:hover .ai-chip__apply-hint {
+  transform: translateX(2px);
+  opacity: 0.88;
+}
+
+/* ─── Estado vacío ───────────────────────────────────────────── */
+.ai-chip__empty {
+  font-size: 9px;
+  color: var(--color-text-tertiary);
+  line-height: 1;
+}
+
+/* ─── Barra de confianza pulsante (modo partial) ─────────────── */
+.ai-chip__confidence {
+  width: 24px;
+  height: 2px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.ai-chip__confidence-bar {
+  height: 100%;
+  border-radius: var(--radius-full);
+  animation: ai-chip-pulse 2s ease-in-out infinite;
+}
+
+.ai-chip__confidence-bar--partial {
+  width: 55%;
+  background: var(--color-warning);
+}
+
+@keyframes ai-chip-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1.0; }
+}
+
+/* ─── Spinner inline (sigue SKILL-DESIGN: solo en chips, no en pantalla completa) */
+.ai-chip__spinner {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--color-border);
+  border-top-color: var(--color-text-tertiary);
+  border-radius: var(--radius-full);
+  animation: ai-chip-spin 0.9s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes ai-chip-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}

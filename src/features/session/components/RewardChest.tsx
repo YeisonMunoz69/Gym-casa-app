@@ -114,6 +114,24 @@ export function RewardChest({ reward, onClose, onBonusCompleted }: RewardChestPr
             </div>
             <h2 className="reward-chest__name">{reward.name}</h2>
             <p className="reward-chest__muscle">{reward.muscleGroup}</p>
+
+            {/* Imagen del ejercicio */}
+            {reward.imageUrl && (
+              <div className="reward-chest__preview">
+                <img
+                  src={reward.imageUrl}
+                  alt={reward.name}
+                  className="reward-chest__preview-img"
+                  loading="lazy"
+                />
+              </div>
+            )}
+
+            {/* Descripción / instrucciones */}
+            {reward.description && (
+              <p className="reward-chest__description">{reward.description}</p>
+            )}
+
             <div className="reward-chest__stats">
               <span className="reward-chest__stat">{reward.sets} series</span>
               <span className="reward-chest__stat-sep">x</span>

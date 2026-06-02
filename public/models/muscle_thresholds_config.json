@@ -1,0 +1,214 @@
+{
+  "model_name": "muscle_thresholds",
+  "model_version": "1.0.0",
+  "description": "Umbrales calibrados estad\u00edsticamente para clasificar el estado de recuperaci\u00f3n muscular. Basado en joep89/weightlifting (721 sesiones reales). Reemplaza los valores hardcodeados en useMuscleRecovery.ts.",
+  "dataset": "joep89/weightlifting",
+  "calibration_method": "percentile_p75_for_neglect_p25_p50_for_recovery",
+  "frontend_usage": "v2/src/features/dashboard/hooks/useMuscleRecovery.ts",
+  "muscle_groups": {
+    "chest": {
+      "neglect_days": 4.5,
+      "exhausted_hours": 72.0,
+      "recovering_hours": 96.0,
+      "min_sets_real_session": 6,
+      "typical_sets_per_session": 8,
+      "data_points": 1926,
+      "calibrated": true,
+      "_stats": {
+        "gap_p25_days": 3.0,
+        "gap_p50_days": 4.0,
+        "gap_p75_days": 4.5,
+        "gap_mean_days": 4.56,
+        "sessions_analyzed": 212
+      }
+    },
+    "upper_back": {
+      "neglect_days": 5.0,
+      "exhausted_hours": 72.0,
+      "recovering_hours": 96.0,
+      "min_sets_real_session": 10,
+      "typical_sets_per_session": 13,
+      "data_points": 2654,
+      "calibrated": true,
+      "_stats": {
+        "gap_p25_days": 3.0,
+        "gap_p50_days": 4.0,
+        "gap_p75_days": 5.0,
+        "gap_mean_days": 4.86,
+        "sessions_analyzed": 201
+      }
+    },
+    "lower_back": {
+      "neglect_days": 9.0,
+      "exhausted_hours": 96.0,
+      "recovering_hours": 120.0,
+      "min_sets_real_session": 3,
+      "typical_sets_per_session": 4,
+      "data_points": 452,
+      "calibrated": true,
+      "_stats": {
+        "gap_p25_days": 4.0,
+        "gap_p50_days": 5.0,
+        "gap_p75_days": 9.0,
+        "gap_mean_days": 10.04,
+        "sessions_analyzed": 102
+      }
+    },
+    "trapezius": {
+      "neglect_days": 53.0,
+      "exhausted_hours": 96.0,
+      "recovering_hours": 168.0,
+      "min_sets_real_session": 4,
+      "typical_sets_per_session": 4,
+      "data_points": 37,
+      "calibrated": true,
+      "_stats": {
+        "gap_p25_days": 4.0,
+        "gap_p50_days": 7.0,
+        "gap_p75_days": 53.0,
+        "gap_mean_days": 111.57,
+        "sessions_analyzed": 8
+      }
+    },
+    "deltoids": {
+      "neglect_days": 5.5,
+      "exhausted_hours": 48.0,
+      "recovering_hours": 72.0,
+      "min_sets_real_session": 3,
+      "typical_sets_per_session": 3,
+      "data_points": 869,
+      "calibrated": true,
+      "_stats": {
+        "gap_p25_days": 2.0,
+        "gap_p50_days": 3.0,
+        "gap_p75_days": 5.5,
+        "gap_mean_days": 4.9,
+        "sessions_analyzed": 200
+      }
+    },
+    "biceps": {
+      "neglect_days": 7.8,
+      "exhausted_hours": 72.0,
+      "recovering_hours": 96.0,
+      "min_sets_real_session": 2,
+      "typical_sets_per_session": 3,
+      "data_points": 564,
+      "calibrated": true,
+      "_stats": {
+        "gap_p25_days": 3.0,
+        "gap_p50_days": 4.0,
+        "gap_p75_days": 7.75,
+        "gap_mean_days": 6.41,
+        "sessions_analyzed": 155
+      }
+    },
+    "triceps": {
+      "neglect_days": 30.0,
+      "exhausted_hours": 96.0,
+      "recovering_hours": 192.0,
+      "min_sets_real_session": 2,
+      "typical_sets_per_session": 3,
+      "data_points": 122,
+      "calibrated": true,
+      "_stats": {
+        "gap_p25_days": 4.0,
+        "gap_p50_days": 8.0,
+        "gap_p75_days": 30.0,
+        "gap_mean_days": 26.43,
+        "sessions_analyzed": 38
+      }
+    },
+    "abdominals": {
+      "neglect_days": 5,
+      "exhausted_hours": 24,
+      "recovering_hours": 48,
+      "min_sets_real_session": 3,
+      "typical_sets_per_session": 4,
+      "data_points": 5,
+      "calibrated": false
+    },
+    "obliques": {
+      "neglect_days": 5,
+      "exhausted_hours": 24,
+      "recovering_hours": 48,
+      "min_sets_real_session": 3,
+      "typical_sets_per_session": 4,
+      "data_points": 0,
+      "calibrated": false
+    },
+    "quadriceps": {
+      "neglect_days": 6.0,
+      "exhausted_hours": 72.0,
+      "recovering_hours": 96.0,
+      "min_sets_real_session": 10,
+      "typical_sets_per_session": 12,
+      "data_points": 2139,
+      "calibrated": true,
+      "_stats": {
+        "gap_p25_days": 3.0,
+        "gap_p50_days": 4.0,
+        "gap_p75_days": 6.0,
+        "gap_mean_days": 5.71,
+        "sessions_analyzed": 173
+      }
+    },
+    "hamstrings": {
+      "neglect_days": 5,
+      "exhausted_hours": 24,
+      "recovering_hours": 48,
+      "min_sets_real_session": 3,
+      "typical_sets_per_session": 4,
+      "data_points": 0,
+      "calibrated": false
+    },
+    "gluteals": {
+      "neglect_days": 264.8,
+      "exhausted_hours": 1608.0,
+      "recovering_hours": 3348.0,
+      "min_sets_real_session": 2,
+      "typical_sets_per_session": 2,
+      "data_points": 14,
+      "calibrated": true,
+      "_stats": {
+        "gap_p25_days": 67.0,
+        "gap_p50_days": 139.5,
+        "gap_p75_days": 264.75,
+        "gap_mean_days": 192.25,
+        "sessions_analyzed": 5
+      }
+    },
+    "calves": {
+      "neglect_days": 5,
+      "exhausted_hours": 24,
+      "recovering_hours": 48,
+      "min_sets_real_session": 3,
+      "typical_sets_per_session": 4,
+      "data_points": 0,
+      "calibrated": false
+    },
+    "forearms": {
+      "neglect_days": 5,
+      "exhausted_hours": 24,
+      "recovering_hours": 48,
+      "min_sets_real_session": 3,
+      "typical_sets_per_session": 4,
+      "data_points": 0,
+      "calibrated": false
+    },
+    "neck": {
+      "neglect_days": 5,
+      "exhausted_hours": 24,
+      "recovering_hours": 48,
+      "min_sets_real_session": 3,
+      "typical_sets_per_session": 4,
+      "data_points": 0,
+      "calibrated": false
+    }
+  },
+  "global_defaults": {
+    "neglect_days": 5,
+    "exhausted_hours": 24,
+    "recovering_hours": 48,
+    "min_sets_real_session": 3
+  }
+}

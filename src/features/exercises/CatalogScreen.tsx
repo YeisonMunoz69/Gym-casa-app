@@ -11,8 +11,8 @@ import { useExerciseSearch } from '../routines/hooks/useExerciseSearch'
 import { HamsterLoader } from '../../components/ui/HamsterLoader'
 import { Button } from '../../components/ui/Button'
 import { IconButton } from '../../components/ui/IconButton'
-import { ProgressByExercise } from '../dashboard/components/ProgressByExercise'
 import { RecoveryBodyMap } from '../dashboard/components/RecoveryBodyMap'
+import { NeglectedMusclesView } from '../dashboard/components/NeglectedMusclesView'
 import { BodyMap, BODY_MUSCLE_SEARCH } from '../routines/components/BodyMap'
 import type { BodyMuscle } from '../routines/components/BodyMap'
 import { ExercisePreview } from '../routines/components/ExercisePreview'
@@ -70,7 +70,7 @@ export function CatalogScreen() {
   const [bodyMapMuscle, setBodyMapMuscle] = useState<BodyMuscle | null>(null)
   const [previewExercise, setPreviewExercise] = useState<ExerciseCatalogRow | null>(null)
   const [showAddDialog, setShowAddDialog] = useState(false)
-  const [activeTab, setActiveTab] = useState<'progress' | 'recovery'>('progress')
+  const [activeTab, setActiveTab] = useState<'recovery' | 'neglected'>('recovery')
 
   const filteredResults = useMemo(() => {
     let base = allResults
@@ -103,21 +103,21 @@ export function CatalogScreen() {
       {/* 1. Progresión y Recuperación en la parte superior */}
       <div className="catalog-screen__progress-section">
         <div className="catalog-tabs">
-          <button 
-            className={`catalog-tab-btn ${activeTab === 'progress' ? 'catalog-tab-btn--active' : ''}`}
-            onClick={() => setActiveTab('progress')}
-          >
-            Progresión
-          </button>
-          <button 
+          <button
             className={`catalog-tab-btn ${activeTab === 'recovery' ? 'catalog-tab-btn--active' : ''}`}
             onClick={() => setActiveTab('recovery')}
           >
             Recuperación
           </button>
+          <button
+            className={`catalog-tab-btn ${activeTab === 'neglected' ? 'catalog-tab-btn--active' : ''}`}
+            onClick={() => setActiveTab('neglected')}
+          >
+            Olvidados
+          </button>
         </div>
         <div className="catalog-tab-content">
-          {activeTab === 'progress' ? <ProgressByExercise /> : <RecoveryBodyMap />}
+          {activeTab === 'recovery' ? <RecoveryBodyMap /> : <NeglectedMusclesView />}
         </div>
       </div>
 

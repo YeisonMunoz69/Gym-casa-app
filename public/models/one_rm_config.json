@@ -1,0 +1,148 @@
+{
+  "model_name": "one_rm_linear_regression",
+  "model_version": "2.0.0",
+  "description": "Regresión Lineal v2 con features [Weight_kg, Reps] crudos y target = consenso de 4 fórmulas 1RM (Epley+Brzycki+Lander+OConner). Corrige el bug circular de v1.0 donde target = combinación lineal exacta de las features (R²=1, MAE=0 artificiales). El frontend calcula: 1RM = coef_a * peso + coef_b * reps + intercept.",
+  "model_type": "linear_regression_consensus_target",
+  "formula": "1RM = coef_a * peso + coef_b * reps + intercept",
+  "formula_v1_bug": "1RM = peso*(coef_a + coef_b*reps/30) [CIRCULAR — target == features]",
+  "target": "mean(Epley, Brzycki, Lander, OConner)",
+  "frontend_usage": [
+    "v2/src/features/dashboard/hooks/useOneRM.ts",
+    "v2/src/features/dashboard/components/OneRMCard.tsx",
+    "Pantalla: Dashboard > Tarjeta 1RM estimado"
+  ],
+  "dataset": "joep89/weightlifting",
+  "training_info": {
+    "total_sets_used": 7378,
+    "train_sets": 5902,
+    "test_sets": 1476,
+    "reps_range": "1-12",
+    "split": "cronológico 80/20"
+  },
+  "global_model": {
+    "coef_a": 1.2687,
+    "coef_b": 3.45902,
+    "intercept": -31.32876,
+    "r2": 0.9946,
+    "mae_kg": 3.64,
+    "note": "Usar cuando muscle_group no está en by_muscle_group"
+  },
+  "epley_baseline": {
+    "formula": "1RM = peso * (1 + reps / 30)",
+    "r2": 0.9983,
+    "mae_kg": 2.42,
+    "note": "Epley estándar vs consenso target — comparación de referencia"
+  },
+  "by_muscle_group": {
+    "chest": {
+      "coef_a": 1.23071,
+      "coef_b": 2.51445,
+      "intercept": -20.44072,
+      "r2": 0.987,
+      "mae_kg": 2.65,
+      "n_samples": 1681,
+      "n_test": 337,
+      "calibrated": true
+    },
+    "upper_back": {
+      "coef_a": 1.31396,
+      "coef_b": 1.782,
+      "intercept": -17.13391,
+      "r2": 0.9985,
+      "mae_kg": 1.34,
+      "n_samples": 2129,
+      "n_test": 426,
+      "calibrated": true
+    },
+    "lower_back": {
+      "coef_a": 1.12849,
+      "coef_b": 3.17269,
+      "intercept": -15.79142,
+      "r2": 0.9964,
+      "mae_kg": 1.4,
+      "n_samples": 373,
+      "n_test": 75,
+      "calibrated": true
+    },
+    "trapezius": {
+      "coef_a": 1.2687,
+      "coef_b": 3.45902,
+      "intercept": -31.32876,
+      "r2": 0.9946,
+      "mae_kg": 3.64,
+      "n_samples": 9,
+      "calibrated": false,
+      "note": "fallback al modelo global por pocos datos"
+    },
+    "deltoids": {
+      "coef_a": 1.30175,
+      "coef_b": 2.06863,
+      "intercept": -20.71301,
+      "r2": 0.994,
+      "mae_kg": 1.71,
+      "n_samples": 496,
+      "n_test": 100,
+      "calibrated": true
+    },
+    "biceps": {
+      "coef_a": 1.34999,
+      "coef_b": 1.63372,
+      "intercept": -17.78055,
+      "r2": 0.9984,
+      "mae_kg": 0.51,
+      "n_samples": 498,
+      "n_test": 100,
+      "calibrated": true
+    },
+    "triceps": {
+      "coef_a": 1.30173,
+      "coef_b": 1.15649,
+      "intercept": -10.91951,
+      "r2": 0.9881,
+      "mae_kg": 1.14,
+      "n_samples": 73,
+      "n_test": 15,
+      "calibrated": true
+    },
+    "quadriceps": {
+      "coef_a": 1.23098,
+      "coef_b": 5.73441,
+      "intercept": -41.42755,
+      "r2": 0.9965,
+      "mae_kg": 3.32,
+      "n_samples": 2119,
+      "n_test": 424,
+      "calibrated": true
+    },
+    "hamstrings": {
+      "coef_a": 1.2687,
+      "coef_b": 3.45902,
+      "intercept": -31.32876,
+      "r2": 0.9946,
+      "mae_kg": 3.64,
+      "n_samples": 0,
+      "calibrated": false,
+      "note": "fallback al modelo global por pocos datos"
+    },
+    "gluteals": {
+      "coef_a": 1.2687,
+      "coef_b": 3.45902,
+      "intercept": -31.32876,
+      "r2": 0.9946,
+      "mae_kg": 3.64,
+      "n_samples": 0,
+      "calibrated": false,
+      "note": "fallback al modelo global por pocos datos"
+    },
+    "calves": {
+      "coef_a": 1.2687,
+      "coef_b": 3.45902,
+      "intercept": -31.32876,
+      "r2": 0.9946,
+      "mae_kg": 3.64,
+      "n_samples": 0,
+      "calibrated": false,
+      "note": "fallback al modelo global por pocos datos"
+    }
+  }
+}

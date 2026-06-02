@@ -4,6 +4,7 @@ import type { BodyState } from 'body-muscles'
 import { useMuscleRecovery } from '../hooks/useMuscleRecovery'
 import type { MuscleState } from '../hooks/useMuscleRecovery'
 import { HamsterLoader } from '../../../components/ui/HamsterLoader'
+import { AIInfoBadge } from '../../../components/ui/AIInfoBadge'
 import { Dumbbell } from 'lucide-react'
 import './RecoveryBodyMap.css'
 
@@ -50,28 +51,39 @@ const MUSCLE_NAMES: Record<string, string> = {
   neck: 'Cuello',
 }
 
-function getStateLabel(state: MuscleState): string {
+function getStateLabel(state: MuscleState, score?: number): string {
   switch (state) {
-    case 'exhausted': return 'Exhausto (Requiere ~48h)'
-    case 'recovering': return 'En recuperación (Requiere ~24h)'
-    case 'recovered': return 'Recuperado (Listo para entrenar)'
+    case 'exhausted':
+      return score != null
+        ? `Exhausto — fatiga ${score}/100`
+        : 'Exhausto (Requiere ~48h)'
+    case 'recovering':
+      return score != null
+        ? `Recuperando — fatiga ${score}/100`
+        : 'En recuperaci\u00f3n (Requiere ~24h)'
+    case 'recovered':
+      return score != null
+        ? `Recuperado — fatiga ${score}/100`
+        : 'Recuperado (Listo para entrenar)'
   }
 }
 
 function getStateColor(state: MuscleState): string {
   switch (state) {
-    case 'exhausted': return 'var(--color-danger)'
+    case 'exhausted':  return 'var(--color-danger)'
     case 'recovering': return 'var(--color-warning)'
-    case 'recovered': return 'var(--color-success)'
+    case 'recovered':  return 'var(--color-success)'
   }
 }
 
-function getIntensityFromState(state: MuscleState): number {
-  switch (state) {
-    case 'exhausted': return 9
-    case 'recovering': return 5
-    case 'recovered': return 2
-  }
+/**
+ * Convierte el score continuo 0-100 a la intensidad 0-10 que usa
+ * la librer\u00eda body-muscles para colorear el SVG.
+ * Score=100 (m\u00e1xima fatiga) → intensidad=10 (rojo brillante)
+ * Score=0   (recuperado)      → intensidad=0  (sin color)
+ */
+function getIntensityFromScore(score: number): number {
+  return Math.round(Math.min(10, score / 10))
 }
 
 export function RecoveryBodyMap() {
@@ -87,7 +99,8 @@ export function RecoveryBodyMap() {
   if (!loading) {
     for (const [group, data] of Object.entries(recoveryData)) {
       if (GROUP_MAPPING[group]) {
-        const intensity = getIntensityFromState(data.state)
+        // v2.0: intensidad proporcional al score ATL continuo (0-100 → 0-10)
+        const intensity = getIntensityFromScore(data.score ?? 0)
         GROUP_MAPPING[group].forEach(id => {
           bodyState[id] = { selected: true, intensity }
         })
@@ -158,6 +171,21 @@ export function RecoveryBodyMap() {
     <div className="recovery-map">
       <div className="recovery-map__header">
         <h3 className="recovery-map__title">Estado de Recuperación</h3>
+        <AIInfoBadge title="¿Cómo funciona el mapa de recuperación?">
+          <p>El mapa colorea cada músculo según su nivel de <strong>fatiga acumulada</strong> en los últimos 14 días.</p>
+          <p>Usa el <strong>Modelo ATL de Banister</strong> (Acute Training Load), un estándar científico en periodización deportiva:</p>
+          <p style={{fontFamily: 'monospace', fontSize: '0.85em', background: 'var(--glass-bg-strong)', padding: '8px', borderRadius: '6px'}}>
+            Fatiga = Σ volumen × e^(-días / tau)
+          </p>
+          <p>Donde <em>tau</em> es la constante de recuperación calibrada por músculo (grupos rápidos como bíceps: ~2-3 días, grupos lentos como piernas: ~3-4 días).</p>
+          <p><strong>Estados:</strong></p>
+          <ul style={{paddingLeft: '1.2em', margin: '0.5em 0'}}>
+            <li><strong style={{color: 'var(--color-danger)'}}>Exhausto</strong> — Fatiga alta, necesita descanso</li>
+            <li><strong style={{color: 'var(--color-warning)'}}>Recuperando</strong> — Fatiga media, puede entrenar con moderación</li>
+            <li><strong style={{color: 'var(--color-success)'}}>Recuperado</strong> — Listo para entrenar al 100%</li>
+          </ul>
+          <p>Toca cualquier músculo del mapa para ver su score de fatiga exacto.</p>
+        </AIInfoBadge>
         <div className="body-map__toggle">
           <button
             type="button"
@@ -207,9 +235,21 @@ export function RecoveryBodyMap() {
             </div>
             {selectedData ? (
               <div className="recovery-info__details">
-                <p><strong style={{ color: getStateColor(selectedData.state) }}>{getStateLabel(selectedData.state)}</strong></p>
-                <p>Último: {selectedData.last_worked}</p>
-                <p>Series (7d): {selectedData.sets_done}</p>
+                <p><strong style={{ color: getStateColor(selectedData.state) }}>
+                  {getStateLabel(selectedData.state, selectedData.score)}
+                </strong></p>
+                {/* Barra de progreso del score (0-100) */}
+                <div className="recovery-info__score-bar">
+                  <div
+                    className="recovery-info__score-fill"
+                    style={{
+                      width: `${selectedData.score ?? 0}%`,
+                      background: getStateColor(selectedData.state),
+                    }}
+                  />
+                </div>
+                <p>\u00daltimo: {selectedData.last_worked}</p>
+                <p>Series (14d): {selectedData.sets_done}</p>
               </div>
             ) : (
               <div className="recovery-info__details">
@@ -219,7 +259,7 @@ export function RecoveryBodyMap() {
             )}
           </div>
         )}
-      </div>
     </div>
+  </div>
   )
 }

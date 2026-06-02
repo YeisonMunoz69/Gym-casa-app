@@ -88,20 +88,22 @@ export async function createSessionExercise(
 export async function saveSessionSet(
   payload: SessionSetPayload,
 ): Promise<{ error: string | null }> {
+  // completed_at es NOT NULL en BD — omitirlo cuando es null deja actuar el DEFAULT now()
+  const row: Record<string, unknown> = {
+    session_exercise_id: payload.session_exercise_id,
+    set_number: payload.set_index + 1,
+    weight: payload.weight,
+    reps: payload.reps,
+    rir: payload.rir,
+    duration_seconds: payload.duration_seconds,
+  }
+  if (payload.completed_at !== null) {
+    row.completed_at = payload.completed_at
+  }
+
   const { error } = await supabase
     .from('session_sets')
-    .upsert(
-      {
-        session_exercise_id: payload.session_exercise_id,
-        set_number: payload.set_index + 1,  // BD usa 1-based
-        weight: payload.weight,
-        reps: payload.reps,
-        rir: payload.rir,
-        duration_seconds: payload.duration_seconds,
-        completed_at: payload.completed_at,
-      },
-      { onConflict: 'session_exercise_id,set_number' },
-    )
+    .upsert(row, { onConflict: 'session_exercise_id,set_number' })
 
   return { error: error?.message ?? null }
 }
@@ -111,15 +113,18 @@ export async function saveAllSessionSets(
 ): Promise<{ error: string | null }> {
   if (sets.length === 0) return { error: null }
 
-  const rows = sets.map((s) => ({
-    session_exercise_id: s.session_exercise_id,
-    set_number: s.set_index + 1,
-    weight: s.weight,
-    reps: s.reps,
-    rir: s.rir,
-    duration_seconds: s.duration_seconds,
-    completed_at: s.completed_at,
-  }))
+  const rows = sets.map((s) => {
+    const row: Record<string, unknown> = {
+      session_exercise_id: s.session_exercise_id,
+      set_number: s.set_index + 1,
+      weight: s.weight,
+      reps: s.reps,
+      rir: s.rir,
+      duration_seconds: s.duration_seconds,
+    }
+    if (s.completed_at !== null) row.completed_at = s.completed_at
+    return row
+  })
 
   const { error } = await supabase
     .from('session_sets')

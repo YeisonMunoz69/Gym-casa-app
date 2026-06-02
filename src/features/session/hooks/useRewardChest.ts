@@ -15,6 +15,7 @@ export type RewardExercise = {
   reps:         string
   restSeconds:  number
   imageUrl:     string
+  description:  string | null   // instrucciones del catálogo
 }
 
 type BonusRow = {
@@ -36,13 +37,14 @@ function toRewardExercise(row: BonusRow): RewardExercise {
     reps:        '12-15',
     restSeconds: 45,
     imageUrl:    row.image_url ?? '/bonus/plank.png',
+    description: row.instructions ?? null,
   }
 }
 
 const FALLBACK: RewardExercise = {
   name: 'Plancha Isometrica', muscleGroup: 'Bonificacion',
   sets: 1, reps: '30s', restSeconds: 45,
-  imageUrl: '/bonus/plank.png',
+  imageUrl: '/bonus/plank.png', description: null,
 }
 
 export function useRewardChest(

@@ -12,6 +12,7 @@ import { useSessionStore } from '../../../stores/sessionStore'
 import { showToast } from '../../../components/ui/Toast'
 import { WEEKDAY_LABELS } from '../../../types/routine'
 import type { RoutineDayRow } from '../../../types/routine'
+import { OneRMCard } from '../../dashboard/components/OneRMCard'
 import './SessionStarter.css'
 import { HamsterLoader } from '../../../components/ui/HamsterLoader'
 
@@ -135,6 +136,9 @@ export function SessionStarter({ onSessionStarted }: SessionStarterProps) {
       </div>
 
       {error && <p className="session-starter__error">{error}</p>}
+
+      {/* 1RM estimado — colapsado por defecto; el usuario lo abre si lo necesita */}
+      <OneRMCard collapsible />
 
       <button
         className="session-starter__start-btn"
