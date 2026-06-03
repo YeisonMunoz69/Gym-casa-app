@@ -62,6 +62,7 @@ type ThresholdsJson = {
 export function useNeglectedMuscles() {
   const userId = useAuthStore(s => s.user?.id)
   const [neglected, setNeglected] = useState<NeglectedMuscle[]>([])
+  const [calibrated, setCalibrated] = useState<string[]>([])
   const [loading, setLoading]     = useState(true)
 
   useEffect(() => {
@@ -114,6 +115,7 @@ export function useNeglectedMuscles() {
       // 4. Determinar músculos descuidados
       const today   = Date.now()
       const results: NeglectedMuscle[] = []
+      const calibratedGroups: string[] = []
 
       for (const muscle of MONITORED_MUSCLES) {
         const cfg       = thresholds?.muscle_groups?.[muscle]
@@ -125,6 +127,9 @@ export function useNeglectedMuscles() {
         //      Son estadísticamente inestables con tan pocas sesiones.
         if (!cfg?.calibrated) continue
         if (threshold > 45) continue
+
+        // Este músculo pasó los filtros de calibración
+        calibratedGroups.push(muscle)
 
         const last = lastWorked[muscle]
         const daysSince = last
@@ -144,11 +149,12 @@ export function useNeglectedMuscles() {
       // Ordenar de más descuidado a menos
       results.sort((a, b) => b.days_since - a.days_since)
       setNeglected(results)
+      setCalibrated(calibratedGroups)
       setLoading(false)
     }
 
     compute()
   }, [userId])
 
-  return { neglected, loading }
+  return { neglected, calibrated, loading }
 }

@@ -35,11 +35,23 @@ const GROUP_MAPPING: Record<string, string[]> = {
   calves:     ['calves-gastroc-medial-left','calves-gastroc-lateral-left','calves-soleus-left','calves-gastroc-medial-right','calves-gastroc-lateral-right','calves-soleus-right','tibialis-anterior-left','tibialis-anterior-right'],
 }
 
-function buildBodyState(neglectedSet: Set<string>): BodyState {
+/**
+ * Construye el estado del body map para la vista de músculos olvidados.
+ * - Descuidado (en neglectedSet) → intensidad 8 (naranja)
+ * - Al día (en calibratedSet, pero no en neglectedSet) → intensidad 1 (verde)
+ * - Sin datos / no calibrado → intensidad 0 (gris neutro, sin color inline)
+ */
+function buildBodyState(neglectedSet: Set<string>, calibratedSet: Set<string>): BodyState {
   const state: BodyState = {}
   for (const [group, ids] of Object.entries(GROUP_MAPPING)) {
-    // intensity 8 → naranja (descuidado) | intensity 1 → verde (al día)
-    const intensity = neglectedSet.has(group) ? 8 : 1
+    let intensity: number
+    if (neglectedSet.has(group)) {
+      intensity = 8    // naranja → descuidado
+    } else if (calibratedSet.has(group)) {
+      intensity = 1    // verde → al día (solo si hay datos calibrados)
+    } else {
+      intensity = 0    // gris → sin datos suficientes
+    }
     for (const id of ids) {
       state[id] = { selected: true, intensity }
     }
@@ -50,18 +62,19 @@ function buildBodyState(neglectedSet: Set<string>): BodyState {
 /* ── Componente ──────────────────────────────────────────────── */
 
 export function NeglectedMusclesView() {
-  const { neglected, loading } = useNeglectedMuscles()
+  const { neglected, calibrated, loading } = useNeglectedMuscles()
   const [view, setView] = useState<'front' | 'back'>('front')
   const containerRef    = useRef<HTMLDivElement>(null)
   const chartRef        = useRef<BodyChart | null>(null)
 
-  const neglectedSet = new Set(neglected.map(m => m.muscle_group))
+  const neglectedSet  = new Set(neglected.map(m => m.muscle_group))
+  const calibratedSet = new Set(calibrated)
 
   /* Inicializar / destruir cuando cambian los datos (igual que RecoveryBodyMap) */
   useEffect(() => {
     if (!containerRef.current || loading) return
 
-    const bodyState = buildBodyState(neglectedSet)
+    const bodyState = buildBodyState(neglectedSet, calibratedSet)
 
     chartRef.current = new BodyChart(containerRef.current, {
       view:               view === 'front' ? ViewSide.FRONT : ViewSide.BACK,
@@ -81,7 +94,7 @@ export function NeglectedMusclesView() {
     if (!chartRef.current) return
     chartRef.current.update({
       view:      view === 'front' ? ViewSide.FRONT : ViewSide.BACK,
-      bodyState: buildBodyState(neglectedSet),
+      bodyState: buildBodyState(neglectedSet, calibratedSet),
     })
   }, [view, neglected]) // eslint-disable-line react-hooks/exhaustive-deps
 
