@@ -8,7 +8,9 @@ import { useState, useEffect } from 'react'
 import { Play, Dumbbell, Calendar } from 'lucide-react'
 import { useRoutines } from '../../routines/hooks/useRoutines'
 import { useActiveSession } from '../hooks/useActiveSession'
+import { useRoutineDaySuggestion } from '../hooks/useRoutineDaySuggestion'
 import { useSessionStore } from '../../../stores/sessionStore'
+import { useAuthStore } from '../../../stores/authStore'
 import { showToast } from '../../../components/ui/Toast'
 import { WEEKDAY_LABELS } from '../../../types/routine'
 import type { RoutineDayRow } from '../../../types/routine'
@@ -21,20 +23,30 @@ type SessionStarterProps = {
 }
 
 export function SessionStarter({ onSessionStarted }: SessionStarterProps) {
+  const userId = useAuthStore((s) => s.user?.id)
   const { routines, loading } = useRoutines()
   const { startSession, isLoading, error } = useActiveSession()
   const [selectedDayId, setSelectedDayId] = useState<string | null>(null)
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null)
+  const [userTouchedSelection, setUserTouchedSelection] = useState(false)
 
   const activeRoutines = routines.filter((r) => r.is_active)
+  const { suggestedRoutineId, suggestedDayId, loading: suggestionLoading } =
+    useRoutineDaySuggestion(activeRoutines, userId)
+
+  // Preselecciona la rutina/día de hoy (o la más usada si varias coinciden) la
+  // primera vez que hay datos. No pisa una elección manual del usuario.
+  useEffect(() => {
+    if (userTouchedSelection || selectedRoutineId !== null) return
+    if (activeRoutines.length === 0 || suggestionLoading) return
+
+    setSelectedRoutineId(suggestedRoutineId ?? activeRoutines[0].id)
+    setSelectedDayId(suggestedDayId)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeRoutines.length, suggestedRoutineId, suggestedDayId, suggestionLoading, userTouchedSelection, selectedRoutineId])
+
   const activeRoutine = activeRoutines.find((r) => r.id === selectedRoutineId) ?? activeRoutines[0] ?? null
   const days = activeRoutine?.routine_days ?? []
-
-  // Reset día seleccionado cuando cambia la rutina
-  if (activeRoutine && selectedRoutineId !== activeRoutine.id) {
-    setSelectedRoutineId(activeRoutine.id)
-    setSelectedDayId(null)
-  }
 
   async function handleStart() {
     if (!activeRoutine || !selectedDayId) return
@@ -93,6 +105,7 @@ export function SessionStarter({ onSessionStarted }: SessionStarterProps) {
                 key={r.id}
                 className={`session-starter__routine-chip ${r.id === activeRoutine.id ? 'session-starter__routine-chip--active' : ''}`}
                 onClick={() => {
+                  setUserTouchedSelection(true)
                   setSelectedRoutineId(r.id)
                   setSelectedDayId(null)
                 }}
@@ -122,7 +135,10 @@ export function SessionStarter({ onSessionStarted }: SessionStarterProps) {
               key={day.id}
               type="button"
               className={`session-starter__day-btn ${isSelected ? 'session-starter__day-btn--selected' : ''}`}
-              onClick={() => setSelectedDayId(day.id)}
+              onClick={() => {
+                setUserTouchedSelection(true)
+                setSelectedDayId(day.id)
+              }}
             >
               <span className="session-starter__day-radio">
                 <Calendar size={16} />

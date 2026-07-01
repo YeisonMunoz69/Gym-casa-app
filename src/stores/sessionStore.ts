@@ -37,6 +37,10 @@ type SessionStore = SessionState & {
   resetTimer: () => void
   extendTimer: (seconds: number) => void
   tickTimer: () => void
+  /** Resincroniza el restante (ej. al volver de segundo plano en iOS) sin
+   *  tocar timerTotalSeconds — a diferencia de startTimer, que resetearía
+   *  el total y rompería la barra de progreso. */
+  syncTimerRemaining: (seconds: number) => void
 
   setStatus: (status: SessionState['status']) => void
   /** Mueve un ejercicio en memoria (no toca BD) */
@@ -186,6 +190,16 @@ export const useSessionStore = create<SessionStore>((set) => ({
         timerRemainingSeconds: next,
         timerRunning: next > 0 ? s.timerRunning : false
       }
+    })
+  },
+
+  syncTimerRemaining(seconds) {
+    set((s) => {
+      // Solo aplica a 'rest' (cuenta regresiva). 'execution' cuenta hacia
+      // arriba y no tiene un deadline persistido con esta semántica.
+      if (!s.timerRunning || s.timerMode !== 'rest') return {}
+      const next = Math.max(0, seconds)
+      return { timerRemainingSeconds: next, timerRunning: next > 0 }
     })
   },
 

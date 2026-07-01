@@ -38,6 +38,13 @@
   color: var(--color-text-primary);
 }
 
+.params-editor__header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
 /* --- Grid --- */
 .params-editor__grid {
   display: grid;

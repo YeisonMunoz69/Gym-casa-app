@@ -7,8 +7,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { Check, Play, Square } from 'lucide-react'
 import { useSessionStore } from '../../../stores/sessionStore'
-import { WeightSuggestionChip } from './WeightSuggestionChip'
-import type { SuggestionStatus } from '../hooks/useWeightSuggestion'
+import { LastPerformanceChip } from './LastPerformanceChip'
+import type { LastPerformanceStatus } from '../hooks/useLastPerformance'
 import type { SetDraft } from '../../../types/session'
 import './SetRow.css'
 
@@ -17,9 +17,9 @@ type SetRowProps = {
   isTimeBased?: boolean
   targetTimeSeconds?: number | null
   weightUnit?: string
-  suggestedWeight?: number | null
-  suggestedReps?: number | null      // v2.0: reps sugeridas por el modelo LSTM
-  suggestionStatus?: SuggestionStatus
+  lastWeight?: number | null
+  lastReps?: number | null           // último registro para este ejercicio
+  lastPerformanceStatus?: LastPerformanceStatus
   onUpdate: (updated: SetDraft) => void
   onComplete: (updated: SetDraft) => void
   onUncomplete: (draft: SetDraft) => void
@@ -30,7 +30,7 @@ function parseNumericInput(raw: string): number | null {
   return isNaN(n) ? null : n
 }
 
-export function SetRow({ draft, isTimeBased, targetTimeSeconds, weightUnit = 'kg', suggestedWeight, suggestedReps, suggestionStatus, onUpdate, onComplete, onUncomplete }: SetRowProps) {
+export function SetRow({ draft, isTimeBased, targetTimeSeconds, weightUnit = 'kg', lastWeight, lastReps, lastPerformanceStatus, onUpdate, onComplete, onUncomplete }: SetRowProps) {
   const [weight, setWeight] = useState(draft.weight?.toString() ?? '')
   const [reps, setReps] = useState(draft.reps?.toString() ?? '')
   const [rir, setRir] = useState(draft.rir?.toString() ?? '')
@@ -93,8 +93,8 @@ export function SetRow({ draft, isTimeBased, targetTimeSeconds, weightUnit = 'kg
     setDurationSeconds(draft.durationSeconds?.toString() ?? '')
   }, [draft.setIndex]) // eslint-disable-line
 
-  // v2.0: autorellena peso y reps cuando el modelo los provee
-  function handleApplySuggestion(w: number, r: number | null) {
+  // Autorellena peso y reps con el último registro del ejercicio
+  function handleApplyLastPerformance(w: number, r: number | null) {
     setWeight(w.toString())
     if (r !== null && r > 0) setReps(r.toString())
     onUpdate({ ...draft, weight: w, reps: r !== null && r > 0 ? r : draft.reps })
@@ -245,16 +245,16 @@ export function SetRow({ draft, isTimeBased, targetTimeSeconds, weightUnit = 'kg
         )}
       </div>
 
-      {/* Chip IA: fuera del weight-wrapper para no aumentar la altura
+      {/* Chip de último registro: fuera del weight-wrapper para no aumentar la altura
           de la columna KG y desplazar el botón de completar.
           Ocupa todo el ancho de los inputs como fila independiente. */}
-      {!isCompleted && suggestionStatus && (
+      {!isCompleted && lastPerformanceStatus && (
         <div className="set-row__ai-row">
-          <WeightSuggestionChip
-            suggestedWeight={suggestedWeight ?? null}
-            suggestedReps={suggestedReps ?? null}
-            status={suggestionStatus}
-            onApply={handleApplySuggestion}
+          <LastPerformanceChip
+            lastWeight={lastWeight ?? null}
+            lastReps={lastReps ?? null}
+            status={lastPerformanceStatus}
+            onApply={handleApplyLastPerformance}
             weightUnit={weightUnit}
           />
         </div>

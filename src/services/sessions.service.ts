@@ -59,6 +59,30 @@ export async function cancelSession(
   return { error: error?.message ?? null }
 }
 
+/** Cuenta sesiones completadas por rutina, para desempatar "rutina más usada"
+ *  cuando varias rutinas activas coinciden con el día de hoy. */
+export async function getRoutineSessionCounts(
+  userId: string,
+  routineIds: string[],
+): Promise<Record<string, number>> {
+  const counts: Record<string, number> = {}
+  if (routineIds.length === 0) return counts
+
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('routine_id')
+    .eq('user_id', userId)
+    .eq('status', 'completed')
+    .in('routine_id', routineIds)
+
+  if (error || !data) return counts
+
+  for (const row of data as { routine_id: string }[]) {
+    counts[row.routine_id] = (counts[row.routine_id] ?? 0) + 1
+  }
+  return counts
+}
+
 /* ---- Ejercicios de sesión ---- */
 
 export async function createSessionExercise(

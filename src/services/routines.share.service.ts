@@ -6,6 +6,7 @@
    Límite: 150 líneas — SKILL-CODE §2.4
    ============================================================ */
 import { supabase } from './supabase'
+import { getUserExerciseVideosBulk, getUserExerciseVideo, saveUserExerciseVideo } from './exercise-videos.service'
 import type { SharedRoutinePayload, SharedDayPayload } from '../types/routine'
 
 /* ── TIPOS INTERNOS ─────────────────────────────────────────── */
@@ -23,6 +24,7 @@ type ExerciseCatalogJoin = {
 
 export async function buildRoutinePayload(
   routineId: string,
+  userId: string,
 ): Promise<{ payload: SharedRoutinePayload | null; error: string | null }> {
   const { data: routine, error: rErr } = await supabase
     .from('routines')
@@ -56,6 +58,9 @@ export async function buildRoutinePayload(
 
     if (exErr) continue
 
+    const dayExerciseIds = (exercises ?? []).map((e) => (e.exercise as unknown as ExerciseCatalogJoin).id)
+    const videosByExerciseId = await getUserExerciseVideosBulk(userId, dayExerciseIds)
+
     sharedDays.push({
       weekday: day.weekday,
       label: day.label,
@@ -78,6 +83,7 @@ export async function buildRoutinePayload(
           warmupSets: e.warmup_sets,
           isTimeBased: e.is_time_based ?? false,
           targetTimeSeconds: e.target_time_seconds ?? null,
+          suggestedVideoUrl: videosByExerciseId[ex.id] ?? null,
         }
       }),
     })
@@ -188,6 +194,17 @@ export async function importSharedRoutine(
       if (exErr) {
         console.error('[importSharedRoutine] ejercicio fallido:', ex.exerciseName, exErr.message)
         failedExercises.push(ex.exerciseName)
+        continue
+      }
+
+      // Siembra el video sugerido del que comparte, solo si el importador
+      // todavía no tiene su propio video para este ejercicio — nunca pisa
+      // una preferencia ya existente.
+      if (ex.suggestedVideoUrl) {
+        const existing = await getUserExerciseVideo(userId, resolvedId)
+        if (!existing) {
+          await saveUserExerciseVideo(userId, resolvedId, ex.suggestedVideoUrl)
+        }
       }
     }
   }

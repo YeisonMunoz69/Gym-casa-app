@@ -11,7 +11,6 @@ import { useBeforeUnload } from '../hooks/useBeforeUnload'
 import { SessionHeader } from './SessionHeader'
 import { ExerciseHeroCard } from './ExerciseHeroCard'
 import { SetTracker } from './SetTracker'
-import { RestTimer } from './RestTimer'
 import { NextExercisePeek } from './NextExercisePeek'
 import { ExerciseQueue } from './ExerciseQueue'
 import { SessionSummary } from './SessionSummary'
@@ -47,6 +46,34 @@ export function ActiveSessionView() {
   const [bonusUsed, setBonusUsed] = useState(false)
   const [showNextOverlay, setShowNextOverlay] = useState(false)
 
+  // Ref para disparar auto-avance desde el callback del timer sin closure stale
+  const autoAdvanceRef = useRef<(() => void) | null>(null)
+
+  // Auto-scroll hacia arriba y overlay "¡Comienza!" al cambiar de ejercicio.
+  // FIX (2026-07-01): también limpia cualquier auto-avance pendiente. Si el
+  // usuario navegó manualmente (botón "Siguiente", NextExercisePeek o cola)
+  // antes de que terminara el timer de descanso entre ejercicios, el avance
+  // programado en handleSetCompleted quedaba vivo y disparaba un salto
+  // "fantasma" adicional cuando el timer finalmente terminaba — saltándose
+  // el ejercicio en el que el usuario ya estaba. Cualquier cambio de índice
+  // (manual o automático) invalida el avance pendiente; si el cambio SÍ fue
+  // el avance automático legítimo, el ref ya se había limpiado un instante
+  // antes en handleInterExerciseTimerFinish, así que no hay conflicto.
+  // FIX (2026-07-01, drive-by): estos dos hooks vivían después del early
+  // return `if (!currentExercise) return null`, violando las reglas de
+  // hooks de React (deben llamarse siempre, sin condicionar). Se movieron
+  // arriba del return — no dependen de `currentExercise`, así que el
+  // comportamiento es idéntico.
+  useEffect(() => {
+    autoAdvanceRef.current = null
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (currentIndex > 0) {
+      setShowNextOverlay(true)
+      const t = setTimeout(() => setShowNextOverlay(false), 2000)
+      return () => clearTimeout(t)
+    }
+  }, [currentIndex])
+
   const currentExercise = exercises[currentIndex] ?? null
   const nextExercise = exercises[currentIndex + 1] ?? null
 
@@ -70,19 +97,6 @@ export function ActiveSessionView() {
     await abortSession()
     setShowExitConfirm(false)
   }
-
-  // Ref para disparar auto-avance desde el callback del timer sin closure stale
-  const autoAdvanceRef = useRef<(() => void) | null>(null)
-
-  // Auto-scroll hacia arriba y overlay "¡Comienza!" al cambiar de ejercicio
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-    if (currentIndex > 0) {
-      setShowNextOverlay(true)
-      const t = setTimeout(() => setShowNextOverlay(false), 2000)
-      return () => clearTimeout(t)
-    }
-  }, [currentIndex])
 
   /** Cuando termina el timer entre ejercicios → avanzar automáticamente */
   function handleInterExerciseTimerFinish() {
@@ -160,6 +174,7 @@ export function ActiveSessionView() {
         onRequestExit={() => setShowExitConfirm(true)}
         onToggleQueue={() => setShowQueue((v) => !v)}
         queueOpen={showQueue}
+        onTimerFinish={handleInterExerciseTimerFinish}
       />
 
       <div className="active-session__content">
@@ -170,11 +185,6 @@ export function ActiveSessionView() {
             <ExerciseHeroCard
               exercise={currentExercise}
               setsCompleted={setsCompleted}
-            />
-
-            <RestTimer
-              defaultSeconds={currentExercise.restSeconds}
-              onFinish={handleInterExerciseTimerFinish}
             />
 
             <SetTracker

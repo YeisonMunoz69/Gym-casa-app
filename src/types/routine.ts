@@ -69,6 +69,10 @@ export type SharedExercisePayload = {
   warmupSets: number
   isTimeBased: boolean
   targetTimeSeconds: number | null
+  /** Video de referencia del que comparte — viaja como sugerencia inicial
+   *  para quien importa. Cada usuario puede cambiar el suyo libremente
+   *  después sin afectar al otro (ver user_exercise_videos). */
+  suggestedVideoUrl?: string | null
 }
 
 export type SharedDayPayload = {

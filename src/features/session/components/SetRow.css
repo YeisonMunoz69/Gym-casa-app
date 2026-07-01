@@ -131,6 +131,37 @@
   cursor: pointer;
   transition: all var(--transition-base);
   flex-shrink: 0;
+  /* Invitación sutil a interactuar: mientras el set no está completado,
+     cada ~6s hace un doble pulso de 2s que resalta el botón (que por
+     defecto se ve opaco) para que el usuario note que es accionable. */
+  animation: set-row-complete-nudge 6s ease-in-out infinite;
+}
+
+@keyframes set-row-complete-nudge {
+  0%, 33.4%, 100% {
+    transform: scale(1);
+    color: var(--color-text-tertiary);
+    border-color: var(--color-border);
+    box-shadow: none;
+  }
+  8%, 25% {
+    transform: scale(1.12);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px var(--color-primary-glow);
+  }
+  16.5% {
+    transform: scale(1);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 4px var(--color-primary-glow);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .set-row__complete-btn {
+    animation: none;
+  }
 }
 
 .set-row__complete-btn:hover:not(:disabled) {
@@ -138,6 +169,7 @@
   border-color: var(--color-success);
   color: var(--color-success);
   transform: scale(1.1);
+  animation-play-state: paused;
 }
 
 .set-row--completed .set-row__complete-btn {
@@ -145,6 +177,8 @@
   border-color: var(--color-success);
   color: white;
   cursor: pointer;
+  /* Ya se completó — no necesita seguir invitando a la acción */
+  animation: none;
 }
 
 .set-row--completed .set-row__complete-btn:hover {

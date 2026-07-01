@@ -4,6 +4,7 @@
    Responsabilidad: imagen grande + nombre + músculo + parámetros objetivo.
    ============================================================ */
 import { Dumbbell, Target, RotateCcw } from 'lucide-react'
+import { ExerciseVideoButton } from '../../../components/ui/ExerciseVideo/ExerciseVideoButton'
 import type { SessionExerciseItem } from '../../../types/session'
 import './ExerciseHeroCard.css'
 
@@ -43,7 +44,10 @@ export function ExerciseHeroCard({ exercise, setsCompleted }: ExerciseHeroCardPr
       </div>
 
       <div className="exercise-hero__body">
-        <h2 className="exercise-hero__name">{exercise.name}</h2>
+        <div className="exercise-hero__name-row">
+          <h2 className="exercise-hero__name">{exercise.name}</h2>
+          <ExerciseVideoButton exerciseId={exercise.exerciseId} exerciseName={exercise.name} />
+        </div>
 
         <div className="exercise-hero__params">
           <div className="exercise-hero__param">

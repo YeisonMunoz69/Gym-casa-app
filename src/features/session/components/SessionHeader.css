@@ -87,6 +87,13 @@
   color: var(--color-error);
 }
 
+/* Posicionamiento del timer dentro del header — el tamaño interno
+   (círculo, botones) lo controla SessionHeaderTimer.css según scroll */
+.session-header .header-timer {
+  justify-content: center;
+  padding: 0 var(--space-4) var(--space-3);
+}
+
 /* Barra de progreso */
 .session-header__progress-bar {
   height: 3px;

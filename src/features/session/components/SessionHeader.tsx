@@ -1,10 +1,14 @@
 /* ============================================================
    SessionHeader.tsx — Barra superior durante el entrenamiento
    FASE 03.2 — GYM-YJMG
-   Responsabilidad: mostrar día, progreso, botón salir + toggle cola.
+   Responsabilidad: mostrar día, progreso, botón salir + toggle cola,
+   y el timer de descanso (SessionHeaderTimer) — vive permanentemente
+   aquí, con tamaño que se colapsa dinámicamente al hacer scroll.
    ============================================================ */
 import { X, ListOrdered } from 'lucide-react'
 import { HelpVideoButton } from '../../../components/ui/HelpVideo/HelpVideoButton'
+import { useScrollCollapse } from '../../../hooks/useScrollCollapse'
+import { SessionHeaderTimer } from './SessionHeaderTimer'
 import './SessionHeader.css'
 
 type SessionHeaderProps = {
@@ -14,6 +18,7 @@ type SessionHeaderProps = {
   onRequestExit: () => void
   onToggleQueue: () => void
   queueOpen: boolean
+  onTimerFinish?: () => void
 }
 
 export function SessionHeader({
@@ -23,10 +28,14 @@ export function SessionHeader({
   onRequestExit,
   onToggleQueue,
   queueOpen,
+  onTimerFinish,
 }: SessionHeaderProps) {
   const progressPercent = totalExercises > 0
     ? (currentIndex / totalExercises) * 100
     : 0
+
+  // 0 = arriba del todo (timer expandido), 1 = scrolleado (timer colapsado)
+  const collapseProgress = useScrollCollapse(80)
 
   return (
     <header className="session-header">
@@ -59,6 +68,8 @@ export function SessionHeader({
           </button>
         </div>
       </div>
+
+      <SessionHeaderTimer onFinish={onTimerFinish} collapseProgress={collapseProgress} />
 
       <div
         className="session-header__progress-bar"

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Save, X } from 'lucide-react'
 import { Button } from '../../../components/ui/Button'
 import { IconButton } from '../../../components/ui/IconButton'
+import { ExerciseVideoButton } from '../../../components/ui/ExerciseVideo/ExerciseVideoButton'
 import type { RoutineExerciseWithDetails } from '../../../types/routine'
 import './ExerciseParamsEditor.css'
 
@@ -54,7 +55,10 @@ export function ExerciseParamsEditor({ exercise, onSave, onClose }: ExercisePara
       <div className="params-editor" onClick={(e) => e.stopPropagation()}>
         <div className="params-editor__header">
           <h3 className="params-editor__title">{exercise.exercise.name}</h3>
-          <IconButton icon={X} ariaLabel="Cerrar" size="sm" onClick={onClose} />
+          <div className="params-editor__header-actions">
+            <ExerciseVideoButton exerciseId={exercise.exercise.id} exerciseName={exercise.exercise.name} />
+            <IconButton icon={X} ariaLabel="Cerrar" size="sm" onClick={onClose} />
+          </div>
         </div>
 
         <div className="params-editor__grid">

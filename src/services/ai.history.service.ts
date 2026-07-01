@@ -1,11 +1,19 @@
 /* ============================================================
-   ai.history.service.ts — Consulta historial de sets para LSTM
+   ai.history.service.ts — Consulta historial de sets de un ejercicio
    Responsabilidad: obtener sets históricos de un ejercicio.
    Usa 2 queries porque PostgREST no soporta filtros a 2+ niveles
    de profundidad en recursos embebidos desde session_sets.
    Columna real en BD: set_number (1-based), status = 'completed'.
 
-   CORRECCIONES APLICADAS (auditoría 2026-05-31):
+   NOTA (2026-07-01): este archivo alimentaba el Modelo 1 LSTM
+   (peso+reps), retirado del frontend por sesgo: fue entrenado
+   agrupando por músculo general en vez de por ejercicio específico
+   (ver ml/REPORTE_MODELO1_LSTM.md). Se conserva `fetchHistoricalSets`
+   por si se reentrena a futuro con granularidad por ejercicio.
+   `fetchLastCompletedSet` es el reemplazo actual: solo trae el
+   último set registrado para recordar al usuario su carga anterior.
+
+   CORRECCIONES APLICADAS (auditoría 2026-05-31, vigentes para fetchHistoricalSets):
    - B4: Historial ahora se invierte a orden ASC antes de retornar.
      El LSTM fue entrenado con secuencias cronológicas (Colab build_sequences
      usa sort_values ASC). Traer DESC y .reverse() da los N sets más recientes
@@ -16,7 +24,18 @@
      Valor 8 debe coincidir con window_size en scaler_config.json.
    ============================================================ */
 import { supabase } from './supabase'
-import type { SetDataPoint } from './ai.lstm.service'
+
+export type SetDataPoint = {
+  weightKg: number
+  reps: number
+  position: number
+}
+
+export type LastCompletedSet = {
+  weightKg: number
+  reps: number
+  completedAt: string
+}
 
 type SessionExerciseRow = {
   id: string
@@ -80,4 +99,31 @@ export async function fetchHistoricalSets(
       position: row.set_number / 8,
     }))
     .reverse()  // B4: invertir de DESC a ASC para coincidir con el orden del entrenamiento
+}
+
+/** Trae el último set completado (peso+reps) de un ejercicio para recordarle
+ *  al usuario su carga anterior. Reemplaza la sugerencia del LSTM retirado. */
+export async function fetchLastCompletedSet(
+  userId: string,
+  exerciseId: string,
+): Promise<LastCompletedSet | null> {
+  const sessionExerciseIds = await fetchSessionExerciseIds(userId, exerciseId)
+  if (sessionExerciseIds.length === 0) return null
+
+  const { data, error } = await supabase
+    .from('session_sets')
+    .select('weight, reps, completed_at')
+    .in('session_exercise_id', sessionExerciseIds)
+    .not('weight', 'is', null)
+    .not('reps', 'is', null)
+    .eq('is_warmup', false)
+    .order('completed_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (error || !data) return null
+  const row = data as { weight: number | null; reps: number | null; completed_at: string | null }
+  if (row.weight === null || row.reps === null || row.completed_at === null) return null
+
+  return { weightKg: row.weight, reps: row.reps, completedAt: row.completed_at }
 }

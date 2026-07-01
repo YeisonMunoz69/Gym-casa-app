@@ -4,7 +4,7 @@
    sesión activa via useBlocker de React Router v6.
    Límite: 150 líneas — SKILL-CODE §2.4
    ============================================================ */
-import { useNavigate, useBlocker, Outlet } from 'react-router-dom'
+import { useNavigate, useLocation, useBlocker, Outlet } from 'react-router-dom'
 import { Header } from './Header'
 import { BottomNav } from './BottomNav'
 import type { TabId } from './BottomNav'
@@ -23,8 +23,14 @@ const TAB_PATHS: Record<TabId, string> = {
 
 export function AppShell() {
   const navigate = useNavigate()
+  const location = useLocation()
   const sessionStatus = useSessionStore((s) => s.status)
   const { abortSession } = useActiveSession()
+
+  // El header por defecto se oculta solo durante el entrenamiento activo:
+  // SessionHeader ya muestra ese chrome (día, progreso, timer compacto),
+  // así que mostrar ambos sería redundante en esa pantalla.
+  const hideDefaultHeader = location.pathname === '/session' && sessionStatus === 'active'
 
   /* ── Bloquear navegación si hay sesión activa ── */
   const blocker = useBlocker(
@@ -51,8 +57,8 @@ export function AppShell() {
 
   return (
     <div className="app-shell">
-      <Header />
-      <main className="app-shell__content">
+      {!hideDefaultHeader && <Header />}
+      <main className={`app-shell__content ${hideDefaultHeader ? 'app-shell__content--no-header' : ''}`}>
         <Outlet />
       </main>
       <BottomNav onTabChange={handleTabChange} />

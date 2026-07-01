@@ -6,7 +6,7 @@
 import { ListChecks } from 'lucide-react'
 import { useSessionStore } from '../../../stores/sessionStore'
 import { useSetAutoSave } from '../hooks/useSetAutoSave'
-import { useWeightSuggestion } from '../hooks/useWeightSuggestion'
+import { useLastPerformance } from '../hooks/useLastPerformance'
 import { SetRow } from './SetRow'
 import { useSettings } from '../../settings/hooks/useSettings'
 import type { SessionExerciseItem, SetDraft } from '../../../types/session'
@@ -28,12 +28,7 @@ export function SetTracker({ exercise, onSetCompleted }: SetTrackerProps) {
   const workSets = sets.filter((s) => !s.isWarmup)
   const warmupSets = sets.filter((s) => s.isWarmup)
 
-  const completedWorkSets = workSets.filter((s) => s.completedAt !== null)
-  const { suggestedWeight, suggestedReps, status: suggestionStatus } = useWeightSuggestion(
-    completedWorkSets,
-    exercise.exerciseId,
-    workSets.length,
-  )
+  const { lastWeight, lastReps, status: lastPerformanceStatus } = useLastPerformance(exercise.exerciseId)
 
   function handleUpdate(draft: SetDraft) {
     saveSet(exercise.routineExerciseId, draft)
@@ -86,9 +81,9 @@ export function SetTracker({ exercise, onSetCompleted }: SetTrackerProps) {
             isTimeBased={exercise.isTimeBased}
             targetTimeSeconds={exercise.targetTimeSeconds}
             weightUnit={weightUnit}
-            suggestedWeight={draft.completedAt === null ? suggestedWeight : null}
-            suggestedReps={draft.completedAt === null ? suggestedReps : null}
-            suggestionStatus={suggestionStatus}
+            lastWeight={draft.completedAt === null ? lastWeight : null}
+            lastReps={draft.completedAt === null ? lastReps : null}
+            lastPerformanceStatus={lastPerformanceStatus}
             onUpdate={handleUpdate}
             onComplete={handleComplete}
             onUncomplete={handleUncomplete}

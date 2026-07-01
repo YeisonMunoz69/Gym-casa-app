@@ -39,7 +39,7 @@ export function ShareRoutineModal({ routineId, routineName, onClose }: ShareRout
     setLoading(true)
     setError(null)
 
-    const { payload, error: buildErr } = await buildRoutinePayload(routineId)
+    const { payload, error: buildErr } = await buildRoutinePayload(routineId, uid)
     if (buildErr || !payload) {
       setError(buildErr ?? 'Error al leer la rutina')
       setLoading(false)
