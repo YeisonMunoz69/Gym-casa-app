@@ -1,6 +1,13 @@
 import { supabase } from './supabase'
 import type { ExerciseCatalogRow } from '../types/exercise'
 
+// Sin un limit() explícito, PostgREST corta silenciosamente en su tope
+// por defecto (sin lanzar error) — con el catálogo completo ordenado
+// alfabéticamente, eso significa que ejercicios que empiezan con letras
+// tardías (ej. "Saltar...") simplemente nunca llegaban a traerse. Este
+// límite es generoso a propósito para no volver a toparlo.
+const EXERCISES_CATALOG_FETCH_LIMIT = 5000
+
 export async function loadExercisesCatalog(): Promise<{
   data: ExerciseCatalogRow[]
   error: string | null
@@ -9,6 +16,7 @@ export async function loadExercisesCatalog(): Promise<{
     .from('exercises_catalog')
     .select('*')
     .order('name', { ascending: true })
+    .limit(EXERCISES_CATALOG_FETCH_LIMIT)
 
   if (error) return { data: [], error: error.message }
   return { data: data as ExerciseCatalogRow[], error: null }
