@@ -8,6 +8,21 @@ export type TrendsCarouselProps = {
   muscularBalance: { subject: string; A: number }[]
 }
 
+// Abrevia etiquetas largas para que no se amontonen alrededor del radar
+// en pantallas de celular (ej. con 8 ejes a la vez).
+const RADAR_LABEL_ABBREVIATIONS: Record<string, string> = {
+  'Cuerpo Completo': 'Cuerpo',
+  'Espalda Alta': 'Esp. Alta',
+  'Espalda Baja': 'Esp. Baja',
+  'Bonificacion': 'Bonus',
+  'Estiramiento': 'Estirar',
+  'Pantorrilla': 'Pantorr.',
+}
+
+function abbreviateRadarLabel(label: string): string {
+  return RADAR_LABEL_ABBREVIATIONS[label] ?? label
+}
+
 export function TrendsCarousel({ weeklyVolume, prProgression, muscularBalance }: TrendsCarouselProps) {
   const [selectedWeekIdx, setSelectedWeekIdx] = useState<number | null>(null)
   const [activeCard, setActiveCard] = useState(0)
@@ -46,12 +61,16 @@ export function TrendsCarousel({ weeklyVolume, prProgression, muscularBalance }:
             </span>
           </div>
           
-          <div style={{ width: '100%', height: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '100%', height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {muscularBalance.length > 0 ? (
-              <ResponsiveContainer width="100%" height={160}>
-                <RadarChart cx="50%" cy="50%" outerRadius="65%" data={muscularBalance}>
+              <ResponsiveContainer width="100%" height={200}>
+                <RadarChart cx="50%" cy="50%" outerRadius="58%" data={muscularBalance}>
                   <PolarGrid stroke="var(--glass-border)" />
-                  <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--color-text-secondary)', fontSize: 10, fontWeight: 600 }} />
+                  <PolarAngleAxis
+                    dataKey="subject"
+                    tickFormatter={abbreviateRadarLabel}
+                    tick={{ fill: 'var(--color-text-secondary)', fontSize: 9, fontWeight: 600 }}
+                  />
                   <Radar name="Balance" dataKey="A" stroke="var(--color-accent-purple)" strokeWidth={2} fill="var(--color-accent-purple)" fillOpacity={0.4} isAnimationActive={true} animationDuration={1500} />
                 </RadarChart>
               </ResponsiveContainer>

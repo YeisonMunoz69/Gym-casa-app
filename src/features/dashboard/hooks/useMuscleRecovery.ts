@@ -1,21 +1,29 @@
 /* ============================================================
-   useMuscleRecovery.ts — v2.0 — Modelo ATL Banister
+   useMuscleRecovery.ts — v3.0 — Modelo ATL Banister, sin calibración externa
    GYM-YJMG — FASE 03
 
-   ANTES (v1.0): thresholds hardcodeados (2 días, 4 sets, 8 sets)
-   AHORA (v2.0): modelo de decaimiento exponencial calibrado.
+   v1.0: thresholds hardcodeados (2 días, 4 sets, 8 sets).
+   v2.0: tau/max_atl_p95 calibrados desde fatigue_decay_config.json
+         (dataset externo joep89/weightlifting, 721 sesiones ajenas).
 
-   El JSON fatigue_decay_config.json (Modelo 3) provee:
-     - tau_days por músculo: constante de recuperación calibrada
-     - max_atl_p95: valor de normalización a score 0-100
-     - score_thresholds: límites de exhausted / recovering / recovered
+   RETIRADO (2026-07) el paso de calibración externa — ver nota en
+   ml/REPORTE_MODELO3_FATIGA_ATL.md. La FÓRMULA de Banister se
+   conserva (es ciencia deportiva establecida, no un modelo
+   entrenado): lo que cambió es de dónde salen sus dos parámetros.
+
+   v3.0 (actual):
+     - tau_days: valores estándar de literatura de fuerza por tamaño
+       de grupo muscular (no ajustados a ningún dataset — ver
+       TAU_BY_MUSCLE_SIZE).
+     - max_atl_p95: calculado EN VIVO con el historial real del
+       propio usuario (percentil 95 de su propia serie de ATL
+       histórico) — se autonormaliza a medida que entrena más.
+     - Umbrales de estado (33/66): fijos, porque el score ya está
+       autonormalizado contra el propio historial del usuario.
 
    Fórmula ATL (Acute Training Load — Banister):
-     fatigue(hoy) = Σ [volumen_sesión × exp(-días_transcurridos / tau)]
-     score = min(100, fatigue / max_atl_p95 × 100)
-
-   El score continuo reemplaza los 3 estados discretos anteriores,
-   dando una intensidad proporcional al body map SVG.
+     fatiga(hoy) = Σ [volumen_sesión × exp(-días_transcurridos / tau)]
+     score = min(100, fatiga / max_atl_p95 × 100)
    ============================================================ */
 import { useEffect, useState } from 'react'
 import { supabase } from '../../../services/supabase'
@@ -26,11 +34,12 @@ import { useAuthStore } from '../../../stores/authStore'
 export type MuscleState = 'exhausted' | 'recovering' | 'recovered'
 
 export type MuscleRecovery = {
-  muscle_group: string
-  state:        MuscleState
-  score:        number      // 0-100: continuo (nuevo en v2.0)
-  last_worked:  string      // YYYY-MM-DD
-  sets_done:    number
+  muscle_group:        string
+  state:                MuscleState
+  score:                number      // 0-100: continuo, autonormalizado al propio historial
+  last_worked:          string      // YYYY-MM-DD
+  sets_done:            number      // sets completados en los últimos 7 días
+  basedOnPersonalData:  boolean     // true = max_atl_p95 con ≥3 sesiones propias; false = bootstrap
 }
 
 // ─── Mapeo DB → BodyMap ID ───────────────────────────────────
@@ -38,83 +47,101 @@ export type MuscleRecovery = {
 const DB_TO_BODYMAP: Record<string, string> = {
   pecho: 'chest',      chest: 'chest',
   espalda: 'upper_back', back: 'upper_back', lats: 'upper_back',
+  'espalda alta': 'upper_back', upper_back: 'upper_back',
+  'espalda baja': 'lower_back', lower_back: 'lower_back', lumbar: 'lower_back',
   trapecio: 'trapezius', traps: 'trapezius',
   hombros: 'deltoids',   shoulders: 'deltoids',
   biceps: 'biceps',
   triceps: 'triceps',
   abdomen: 'abdominals', abs: 'abdominals',
   piernas: 'quadriceps', quads: 'quadriceps',
+  cuadriceps: 'quadriceps', 'cuádriceps': 'quadriceps', quadriceps: 'quadriceps',
+  hamstrings: 'hamstrings', femorales: 'hamstrings',
   gluteos: 'gluteals',   glutes: 'gluteals',
   pantorrilla: 'calves', calves: 'calves',
   antebrazos: 'forearms', forearms: 'forearms',
   cuello: 'neck',        neck: 'neck',
 }
 
-// ─── Config del modelo ATL ───────────────────────────────────
+// ─── Constantes del modelo (sin calibración externa) ──────────
 
-type MuscleATLConfig = {
-  tau_days:    number
-  max_atl_p95: number
-  calibrated:  boolean
+// Días para que la fatiga se disipe, por tamaño de grupo muscular.
+// Valores estándar de literatura de entrenamiento de fuerza — no
+// ajustados a ningún dataset específico.
+const TAU_BY_MUSCLE: Record<string, number> = {
+  biceps: 1.5, triceps: 1.5, calves: 1.5, forearms: 1.5,
+  abdominals: 1.5, obliques: 1.5, neck: 1.5,
+  chest: 2.0, deltoids: 2.0, upper_back: 2.0, lower_back: 2.0,
+  gluteals: 2.0, trapezius: 2.0,
+  quadriceps: 2.5, hamstrings: 2.5,
+}
+const DEFAULT_TAU = 2.0
+
+const SCORE_THRESHOLDS = { exhausted_above: 66, recovering_above: 33 }
+
+// Ventana de historial para calcular el ATL histórico propio (más
+// amplia que la fatiga "de hoy" en sí — sirve para tener suficientes
+// sesiones y estimar un percentil 95 estable).
+const HISTORY_WINDOW_DAYS = 90
+const RECENT_SETS_WINDOW_DAYS = 7
+const MIN_SESSIONS_FOR_PERSONAL_MAX = 3
+
+// ─── Funciones puras del modelo ────────────────────────────────
+
+function percentile(sorted: number[], p: number): number {
+  if (sorted.length === 0) return 0
+  const idx = (p / 100) * (sorted.length - 1)
+  const lower = Math.floor(idx)
+  const upper = Math.ceil(idx)
+  if (lower === upper) return sorted[lower]
+  const weight = idx - lower
+  return sorted[lower] * (1 - weight) + sorted[upper] * weight
 }
 
-type FatigueDecayConfig = {
-  score_thresholds: {
-    exhausted_above:  number
-    recovering_above: number
+/** ATL en un instante dado, sumando el aporte decaído de cada sesión previa. */
+function atlAt(asOfMs: number, history: Array<{ ms: number; volume: number }>, tau: number): number {
+  let atl = 0
+  for (const h of history) {
+    const daysSince = (asOfMs - h.ms) / (1000 * 60 * 60 * 24)
+    if (daysSince < 0) continue
+    atl += h.volume * Math.exp(-daysSince / tau)
   }
-  muscle_groups: Record<string, MuscleATLConfig>
+  return atl
 }
-
-// Fallback si el fetch del JSON falla (valores Banister estándar)
-const DEFAULT_ATL_CONFIG: FatigueDecayConfig = {
-  score_thresholds: { exhausted_above: 39.3, recovering_above: 9.2 },
-  muscle_groups: {},
-}
-
-const DEFAULT_MUSCLE_ATL: MuscleATLConfig = {
-  tau_days: 2.0,
-  max_atl_p95: 100.0,
-  calibrated: false,
-}
-
-// ─── Función ATL pura ────────────────────────────────────────
 
 /**
- * Calcula el score de fatiga (0-100) para un músculo dado
- * usando el modelo de Banister (decaimiento exponencial).
- *
- * @param history  - Array de sesiones con fecha y volumen (kg × reps)
- * @param tau      - Constante de tiempo de recuperación en días
- * @param maxAtlP95 - Valor de normalización (percentil 95 del ATL histórico)
+ * Calcula el score de fatiga (0-100) de un músculo con su propio
+ * historial: max_atl_p95 se deriva de la serie de ATL calculada en
+ * cada una de sus sesiones pasadas (autonormalización), no de un
+ * valor externo calibrado con datos de otra persona.
  */
 function computeATLScore(
   history: Array<{ date: string; volume: number }>,
   tau: number,
-  maxAtlP95: number,
-): number {
-  if (history.length === 0 || tau <= 0 || maxAtlP95 <= 0) return 0
+): { score: number; basedOnPersonalData: boolean } {
+  if (history.length === 0) return { score: 0, basedOnPersonalData: false }
+
+  const sorted = [...history].sort((a, b) => a.date.localeCompare(b.date))
+  const withMs = sorted.map(h => ({ ms: new Date(h.date).getTime(), volume: h.volume }))
 
   const now = Date.now()
-  let atl = 0
+  const currentAtl = atlAt(now, withMs, tau)
 
-  for (const s of history) {
-    const sessionMs = new Date(s.date).getTime()
-    const daysSince = (now - sessionMs) / (1000 * 60 * 60 * 24)
-    if (daysSince < 0) continue // ignorar fechas futuras
-    atl += s.volume * Math.exp(-daysSince / tau)
-  }
+  // Serie histórica: ATL "como se hubiera visto" en cada sesión pasada
+  const historicalSeries = withMs.map(h => atlAt(h.ms, withMs, tau)).sort((a, b) => a - b)
 
-  return Math.min(100, (atl / maxAtlP95) * 100)
+  const basedOnPersonalData = historicalSeries.length >= MIN_SESSIONS_FOR_PERSONAL_MAX
+  const maxAtlP95 = basedOnPersonalData
+    ? percentile(historicalSeries, 95)
+    : historicalSeries[historicalSeries.length - 1] // bootstrap: única sesión = su propio 100%
+
+  if (maxAtlP95 <= 0) return { score: 0, basedOnPersonalData }
+  return { score: Math.min(100, (currentAtl / maxAtlP95) * 100), basedOnPersonalData }
 }
 
-/**
- * Convierte score continuo (0-100) a estado discreto según
- * los umbrales calibrados del JSON.
- */
-function scoreToState(score: number, thresholds: FatigueDecayConfig['score_thresholds']): MuscleState {
-  if (score >= thresholds.exhausted_above)  return 'exhausted'
-  if (score >= thresholds.recovering_above) return 'recovering'
+function scoreToState(score: number): MuscleState {
+  if (score >= SCORE_THRESHOLDS.exhausted_above)  return 'exhausted'
+  if (score >= SCORE_THRESHOLDS.recovering_above) return 'recovering'
   return 'recovered'
 }
 
@@ -131,26 +158,10 @@ export function useMuscleRecovery() {
     async function fetchRecovery() {
       setLoading(true)
 
-      // ── 1. Cargar config del modelo ATL ──────────────────
-      // Se carga en paralelo con la query de BD para no bloquear.
-      // Si falla, se usa el fallback de Banister estándar.
-      let atlConfig: FatigueDecayConfig = DEFAULT_ATL_CONFIG
-      try {
-        const res = await fetch('/models/fatigue_decay_config.json')
-        if (res.ok) {
-          atlConfig = await res.json() as FatigueDecayConfig
-        }
-      } catch {
-        // Silencioso: el fallback mantendrá el comportamiento anterior
-        console.warn('[useMuscleRecovery] No se pudo cargar fatigue_decay_config.json — usando valores Banister estándar')
-      }
-
-      // ── 2. Query BD: sesiones de los últimos 14 días ──────
-      // 14 días (en vez de 7 anteriores) para que el ATL acumule
-      // suficiente historial y el decaimiento sea significativo.
       const fromDate = new Date()
-      fromDate.setDate(fromDate.getDate() - 14)
+      fromDate.setDate(fromDate.getDate() - HISTORY_WINDOW_DAYS)
       const fromStr = fromDate.toISOString().slice(0, 10)
+      const recentCutoffMs = Date.now() - RECENT_SETS_WINDOW_DAYS * 24 * 60 * 60 * 1000
 
       const { data, error } = await supabase
         .from('sessions')
@@ -166,16 +177,19 @@ export function useMuscleRecovery() {
         .gte('session_date', fromStr)
 
       if (error || !data) {
+        setRecoveryData({})
         setLoading(false)
         return
       }
 
-      // ── 3. Acumular historial de volumen por músculo ───────
-      // Volumen de carga = peso_kg × reps (por set, por sesión, por músculo)
+      // ── Acumular historial de volumen por músculo (por fecha) ───
       const muscleHistory: Record<string, Array<{ date: string; volume: number; sets: number }>> = {}
+      const recentSetsByMuscle: Record<string, number> = {}
 
       for (const session of data as any[]) {
         const date: string = session.session_date
+        const sessionMs = new Date(date).getTime()
+
         for (const se of session.session_exercises || []) {
           const muscleGroup: string | undefined = se.exercises_catalog?.muscle_group
           if (!muscleGroup) continue
@@ -196,8 +210,6 @@ export function useMuscleRecovery() {
           if (sessionSets === 0) continue
 
           if (!muscleHistory[bodymapId]) muscleHistory[bodymapId] = []
-
-          // Agregar por fecha (puede haber varias sesiones el mismo día)
           const existing = muscleHistory[bodymapId].find(h => h.date === date)
           if (existing) {
             existing.volume += sessionVolume
@@ -205,34 +217,32 @@ export function useMuscleRecovery() {
           } else {
             muscleHistory[bodymapId].push({ date, volume: sessionVolume, sets: sessionSets })
           }
+
+          if (sessionMs >= recentCutoffMs) {
+            recentSetsByMuscle[bodymapId] = (recentSetsByMuscle[bodymapId] ?? 0) + sessionSets
+          }
         }
       }
 
-      // ── 4. Calcular score ATL y estado por músculo ─────────
+      // ── Calcular score y estado por músculo ─────────────────
       const muscleMap: Record<string, MuscleRecovery> = {}
 
       for (const [bodymapId, history] of Object.entries(muscleHistory)) {
-        const atlCfg = atlConfig.muscle_groups?.[bodymapId] ?? DEFAULT_MUSCLE_ATL
-
-        const score = computeATLScore(
+        const tau = TAU_BY_MUSCLE[bodymapId] ?? DEFAULT_TAU
+        const { score, basedOnPersonalData } = computeATLScore(
           history.map(h => ({ date: h.date, volume: h.volume })),
-          atlCfg.tau_days,
-          atlCfg.max_atl_p95,
+          tau,
         )
-
-        const state = scoreToState(score, atlConfig.score_thresholds)
-
-        // last_worked = fecha más reciente en el historial
-        const lastWorked = history.reduce((latest, h) =>
-          h.date > latest ? h.date : latest, history[0].date)
-        const totalSets = history.reduce((sum, h) => sum + h.sets, 0)
+        const state = scoreToState(score)
+        const lastWorked = history.reduce((latest, h) => (h.date > latest ? h.date : latest), history[0].date)
 
         muscleMap[bodymapId] = {
           muscle_group: bodymapId,
           state,
           score: Math.round(score),
           last_worked: lastWorked,
-          sets_done: totalSets,
+          sets_done: recentSetsByMuscle[bodymapId] ?? 0,
+          basedOnPersonalData,
         }
       }
 

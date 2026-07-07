@@ -81,18 +81,20 @@ function getStateColor(state: MuscleState): string {
  * la librería body-muscles para colorear el SVG (amarillo -> rojo).
  * Si está recuperado, retorna 0 para usar el estilo verde base (CSS).
  */
+// Mismos umbrales que SCORE_THRESHOLDS en useMuscleRecovery.ts (33/66) —
+// el score ya viene autonormalizado contra el historial propio del usuario.
 function getIntensityFromState(state: MuscleState, score: number): number {
   if (state === 'recovered') return 0; // Verde suave base (sin color inline)
-  
+
   if (state === 'recovering') {
-    // Rango aprox de recovering: 9.2 a 39.3 -> Mapear a intensidad 1 a 6 (amarillo a naranja)
-    const p = Math.max(0, Math.min(1, (score - 9.2) / (39.3 - 9.2)));
+    // Rango recovering: 33 a 66 -> Mapear a intensidad 1 a 6 (amarillo a naranja)
+    const p = Math.max(0, Math.min(1, (score - 33) / (66 - 33)));
     return Math.round(1 + p * 5);
   }
-  
+
   // exhausted
-  // Rango exhausted: 39.3 a 100 -> Mapear a intensidad 7 a 10 (rojo a rojo oscuro)
-  const p = Math.max(0, Math.min(1, (score - 39.3) / (100 - 39.3)));
+  // Rango exhausted: 66 a 100 -> Mapear a intensidad 7 a 10 (rojo a rojo oscuro)
+  const p = Math.max(0, Math.min(1, (score - 66) / (100 - 66)));
   return Math.round(7 + p * 3);
 }
 
@@ -182,12 +184,13 @@ export function RecoveryBodyMap() {
       <div className="recovery-map__header">
         <h3 className="recovery-map__title">Estado de Recuperación</h3>
         <AIInfoBadge title="¿Cómo funciona el mapa de recuperación?">
-          <p>El mapa colorea cada músculo según su nivel de <strong>fatiga acumulada</strong> en los últimos 14 días.</p>
+          <p>El mapa colorea cada músculo según su nivel de <strong>fatiga acumulada</strong>, calculada con tu propio historial de entrenamiento.</p>
           <p>Usa el <strong>Modelo ATL de Banister</strong> (Acute Training Load), un estándar científico en periodización deportiva:</p>
           <p style={{fontFamily: 'monospace', fontSize: '0.85em', background: 'var(--glass-bg-strong)', padding: '8px', borderRadius: '6px'}}>
             Fatiga = Σ volumen × e^(-días / tau)
           </p>
-          <p>Donde <em>tau</em> es la constante de recuperación calibrada por músculo (grupos rápidos como bíceps: ~2-3 días, grupos lentos como piernas: ~3-4 días).</p>
+          <p>Donde <em>tau</em> son valores estándar de referencia según el tamaño del grupo muscular (rápidos como bíceps: 1.5 días, medianos como pecho/espalda: 2 días, grandes como piernas: 2.5 días) — no un ajuste hecho con datos de otra persona.</p>
+          <p>El 100% de la escala (qué tan "alto" es tu score) se calcula con <strong>tu propio historial</strong>: es el percentil 95 de tu fatiga pasada. Al principio, con poco historial, tu primera sesión se toma como referencia inicial — se vuelve más preciso con cada entrenamiento que registras.</p>
           <p><strong>Estados:</strong></p>
           <ul style={{paddingLeft: '1.2em', margin: '0.5em 0'}}>
             <li><strong style={{color: 'var(--color-danger)'}}>Exhausto</strong> — Fatiga alta, necesita descanso</li>
@@ -259,7 +262,10 @@ export function RecoveryBodyMap() {
                   />
                 </div>
                 <p>\u00daltimo: {selectedData.last_worked}</p>
-                <p>Series (14d): {selectedData.sets_done}</p>
+                <p>Series (7d): {selectedData.sets_done}</p>
+                {!selectedData.basedOnPersonalData && (
+                  <p className="recovery-info__hint">Estimaci\u00f3n inicial \u2014 se afina con m\u00e1s entrenamientos</p>
+                )}
               </div>
             ) : (
               <div className="recovery-info__details">

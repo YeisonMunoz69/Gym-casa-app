@@ -30,6 +30,10 @@ export function ExerciseVideoModal({ exerciseId, exerciseName, onClose }: Exerci
   const showForm = editing || (!loading && !videoUrl)
   const embedUrl = videoUrl ? getVideoEmbedUrl(videoUrl) : null
   const showEmbed = videoUrl && embedUrl && !iframeError
+  const currentPlatform = platform ?? detectVideoPlatform(videoUrl ?? '')
+  const fallbackMessage = currentPlatform === 'tiktok' || currentPlatform === 'instagram'
+    ? `${getPlatformLabel(currentPlatform)} no permite mostrar el video aquí dentro — ábrelo directo.`
+    : 'No se pudo mostrar la vista previa aquí.'
 
   async function handleSave() {
     if (!draftUrl.trim()) return
@@ -100,14 +104,14 @@ export function ExerciseVideoModal({ exerciseId, exerciseName, onClose }: Exerci
               ) : (
                 <div className="ex-video__fallback">
                   <Clapperboard size={28} />
-                  <p>No se pudo mostrar la vista previa aquí.</p>
+                  <p>{fallbackMessage}</p>
                   <a
                     className="ex-video__external-btn"
                     href={getVideoDirectUrl(videoUrl ?? '')}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <span>Ver en {getPlatformLabel(platform ?? detectVideoPlatform(videoUrl ?? ''))}</span>
+                    <span>Ver en {getPlatformLabel(currentPlatform)}</span>
                     <ExternalLink size={14} />
                   </a>
                 </div>

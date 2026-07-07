@@ -67,16 +67,17 @@ function RoutinesTab() {
 }
 
 function SessionTab() {
+  // Deriva directo de sessionStore.status — antes había un booleano local
+  // separado (sessionStarted) que arrancaba en false en cada montaje y
+  // bloqueaba mostrar una sesión ya activa rehidratada desde localStorage
+  // (ver FIX 2026-07 en sessionStore.ts) tras recargar la página.
   const sessionStatus = useSessionStore((s) => s.status)
-  const [sessionStarted, setSessionStarted] = useState(false)
 
-  if (sessionStarted && sessionStatus !== 'idle') {
+  if (sessionStatus !== 'idle') {
     return <ActiveSessionView />
   }
 
-  return (
-    <SessionStarter onSessionStarted={() => setSessionStarted(true)} />
-  )
+  return <SessionStarter />
 }
 
 /* ── Subpantallas flotantes que preservan el chrome ───────── */
@@ -116,6 +117,11 @@ function PendingShareRedirect() {
   return null
 }
 
+/* Sesiones rehidratadas de localStorage con más de esta antigüedad se
+ * consideran abandonadas (ej. el usuario cerró el celular hace días) y
+ * no se auto-resumen — ver sessionStore.ts. */
+const MAX_RESUMABLE_SESSION_AGE_MS = 6 * 60 * 60 * 1000 // 6 horas
+
 /* ── App autenticada con árbol de rutas ──────────────────── */
 
 function AuthenticatedApp() {
@@ -126,6 +132,18 @@ function AuthenticatedApp() {
   const [isBanned,     setIsBanned]     = useState(false)
   const [banChecked,   setBanChecked]   = useState(false)
   const [showWelcome,  setShowWelcome]  = useState(false)
+
+  // Al arrancar: si localStorage trae una sesión activa rehidratada
+  // (ver FIX 2026-07 en sessionStore.ts) demasiado vieja, se descarta en
+  // vez de auto-resumirla como si el usuario acabara de dejarla.
+  useEffect(() => {
+    const { status, startedAt, clearSession } = useSessionStore.getState()
+    if (status !== 'active' || !startedAt) return
+    const ageMs = Date.now() - new Date(startedAt).getTime()
+    if (Number.isNaN(ageMs) || ageMs > MAX_RESUMABLE_SESSION_AGE_MS) {
+      clearSession()
+    }
+  }, [])
 
   // Verificar ban al autenticar
   useEffect(() => {

@@ -41,24 +41,17 @@ function getYoutubeVideoId(parsed: URL): string | null {
   return null
 }
 
-/** Extrae el ID numérico de un link largo de TikTok (.../video/1234...).
- *  Links cortos (vm.tiktok.com/xxxx) no se pueden resolver sin seguir un
- *  redirect cross-origin — se detectan pero no se embeben (ver getVideoEmbedUrl). */
-function getTiktokVideoId(parsed: URL): string | null {
-  const match = parsed.pathname.match(/\/video\/(\d+)/)
-  return match ? match[1] : null
-}
-
-/** Extrae el shortcode de un post/reel de Instagram (/p/{code}/ o /reel/{code}/).
- *  Links de tipo /share/... tampoco se pueden resolver sin seguir un redirect. */
-function getInstagramShortcode(parsed: URL): string | null {
-  const match = parsed.pathname.match(/\/(p|reel|reels)\/([^/]+)/)
-  return match ? match[2] : null
-}
-
-/** URL para iframe embebido. null si la plataforma no soporta iframe para
- *  este link (ej. links cortos que no se pueden resolver desde el navegador) —
- *  en ese caso la UI debe caer al botón "Ver en {plataforma}" (getVideoDirectUrl). */
+/** URL para iframe embebido. null si la plataforma no soporta iframe embebido
+ *  de forma confiable — en ese caso la UI debe caer al botón "Ver en
+ *  {plataforma}" (getVideoDirectUrl).
+ *
+ *  NOTA (2026-07): probado en producción — YouTube funciona bien via iframe.
+ *  TikTok e Instagram NO: sus iframes de embed frecuentemente cargan pero
+ *  muestran un muro de login o "contenido no disponible" en vez del video
+ *  (falla silenciosa — el iframe "carga" con status 200, así que `onError`
+ *  del <iframe> nunca se dispara para detectarlo). En vez de apostar a un
+ *  iframe que puede fallar sin avisar, para esas dos plataformas siempre se
+ *  usa el link directo, que sí garantiza abrir el video real. */
 export function getVideoEmbedUrl(rawUrl: string): string | null {
   const parsed = normalizeUrl(rawUrl)
   if (!parsed) return null
@@ -67,14 +60,6 @@ export function getVideoEmbedUrl(rawUrl: string): string | null {
   if (platform === 'youtube') {
     const id = getYoutubeVideoId(parsed)
     return id ? `https://www.youtube-nocookie.com/embed/${id}?playsinline=1&rel=0&modestbranding=1` : null
-  }
-  if (platform === 'tiktok') {
-    const id = getTiktokVideoId(parsed)
-    return id ? `https://www.tiktok.com/embed/v2/${id}` : null
-  }
-  if (platform === 'instagram') {
-    const code = getInstagramShortcode(parsed)
-    return code ? `https://www.instagram.com/reel/${code}/embed/` : null
   }
   return null
 }

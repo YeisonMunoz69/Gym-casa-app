@@ -18,28 +18,11 @@ import type { BodyMuscle } from '../routines/components/BodyMap'
 import { ExercisePreview } from '../routines/components/ExercisePreview'
 import { CreateExerciseForm } from '../routines/components/CreateExerciseForm'
 import type { ExerciseCatalogRow } from '../../types/exercise'
-import { toSpanishMuscle } from '../../utils/muscleGroupLabels'
+import { toSpanishMuscle, MUSCLE_GROUP_FILTERS } from '../../utils/muscleGroupLabels'
 import './CatalogScreen.css'
 
 const PAGE_SIZE = 15
-const MUSCLE_GROUPS = [
-  { label: 'Pecho',         values: ['pecho', 'chest'] },
-  { label: 'Espalda',       values: ['espalda', 'back', 'lats'] },
-  { label: 'Trapecio',      values: ['trapecio', 'traps', 'trapezius'] },
-  { label: 'Hombros',       values: ['hombros', 'shoulders', 'deltoids'] },
-  { label: 'Biceps',        values: ['biceps', 'bicep'] },
-  { label: 'Triceps',       values: ['triceps', 'tricep'] },
-  { label: 'Antebrazos',    values: ['antebrazos', 'forearms'] },
-  { label: 'Piernas',       values: ['piernas', 'legs', 'quads', 'quadriceps', 'hamstrings', 'pierna'] },
-  { label: 'Gluteos',       values: ['gluteos', 'glutes'] },
-  { label: 'Abdomen',       values: ['abdomen', 'abs', 'abdominales', 'core'] },
-  { label: 'Pantorrilla',   values: ['pantorrilla', 'calves'] },
-  { label: 'Cuello',        values: ['cuello', 'neck'] },
-  { label: 'Cardio',        values: ['cardio'] },
-  { label: 'Cuerpo Completo', values: ['cuerpo completo', 'full body'] },
-  { label: 'Estiramiento',  values: ['estiramiento', 'stretching', 'stretch', 'flexibility', 'movilidad', 'mobility'] },
-  { label: 'Bonificacion',  values: ['bonificacion', 'bonificación'] },
-]
+const MUSCLE_GROUPS = MUSCLE_GROUP_FILTERS
 
 function CatalogItem({ exercise, onClick }: { exercise: ExerciseCatalogRow; onClick: () => void }) {
   return (

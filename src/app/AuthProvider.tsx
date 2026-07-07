@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { supabase } from '../services/supabase'
 import { useAuthStore } from '../stores/authStore'
+import { useSessionStore } from '../stores/sessionStore'
 
 /**
  * Escucha cambios de sesion de Supabase y sincroniza con el store.
@@ -20,6 +21,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session)
+        // Sesión de entrenamiento activa (localStorage) es por-dispositivo,
+        // no por-usuario — limpiarla al cerrar sesión evita que un segundo
+        // familiar que use el mismo celular la vea rehidratada.
+        if (!session) useSessionStore.getState().clearSession()
       },
     )
 

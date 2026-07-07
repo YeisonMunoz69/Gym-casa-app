@@ -9,7 +9,6 @@ import { Play, Dumbbell, Calendar } from 'lucide-react'
 import { useRoutines } from '../../routines/hooks/useRoutines'
 import { useActiveSession } from '../hooks/useActiveSession'
 import { useRoutineDaySuggestion } from '../hooks/useRoutineDaySuggestion'
-import { useSessionStore } from '../../../stores/sessionStore'
 import { useAuthStore } from '../../../stores/authStore'
 import { showToast } from '../../../components/ui/Toast'
 import { WEEKDAY_LABELS } from '../../../types/routine'
@@ -18,11 +17,7 @@ import { OneRMCard } from '../../dashboard/components/OneRMCard'
 import './SessionStarter.css'
 import { HamsterLoader } from '../../../components/ui/HamsterLoader'
 
-type SessionStarterProps = {
-  onSessionStarted: () => void
-}
-
-export function SessionStarter({ onSessionStarted }: SessionStarterProps) {
+export function SessionStarter() {
   const userId = useAuthStore((s) => s.user?.id)
   const { routines, loading } = useRoutines()
   const { startSession, isLoading, error } = useActiveSession()
@@ -67,13 +62,9 @@ export function SessionStarter({ onSessionStarted }: SessionStarterProps) {
     }
   }, [error])
 
-  // Llama onSessionStarted si status cambia a active
-  const status = useSessionStore(s => s.status)
-  useEffect(() => {
-    if (status === 'active') {
-      onSessionStarted()
-    }
-  }, [status, onSessionStarted])
+  // Al iniciar (startSession → initSession), sessionStore.status pasa a
+  // 'active' y SessionTab (App.tsx) muestra ActiveSessionView automáticamente
+  // — no hace falta notificar al padre.
 
   if (loading) {
     return (

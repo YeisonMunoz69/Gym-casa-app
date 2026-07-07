@@ -1,10 +1,20 @@
 /* ============================================================
-   sessionStore.ts — Estado global EN MEMORIA de la sesión activa
+   sessionStore.ts — Estado global de la sesión activa
    FASE 03 — GYM-YJMG
-   Regla crítica: este store NO persiste en BD. Solo Zustand.
+   Regla crítica: este store NO persiste en BD durante la sesión.
    El guardado en BD ocurre en useActiveSession al finalizar.
+
+   FIX (2026-07): iOS Safari descarta agresivamente las pestañas en
+   segundo plano cuando el usuario cambia de app (ej. WhatsApp) — al
+   volver, la página se recarga desde cero y este store (antes solo en
+   memoria) se perdía por completo, cerrando la rutina de golpe. Ahora
+   se espeja a localStorage (persist de Zustand) para poder rehidratarse
+   si eso ocurre. Los campos de timer en vivo (timerMode/Total/Remaining/
+   Running) se excluyen del espejo — esos ya se manejan aparte con
+   semántica de deadline en useTimerPersistence.ts, keyed por sessionId.
    ============================================================ */
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import type { SessionExerciseItem, SetDraft, SessionState } from '../types/session'
 
 type SessionStore = SessionState & {
@@ -103,7 +113,7 @@ function buildInitialSets(
   return result
 }
 
-export const useSessionStore = create<SessionStore>((set) => ({
+export const useSessionStore = create<SessionStore>()(persist((set) => ({
   ...INITIAL_STATE,
 
   initSession({ sessionId, sessionExerciseIds, routineId, routineDayId, dayLabel, exercises }) {
@@ -266,4 +276,25 @@ export const useSessionStore = create<SessionStore>((set) => ({
   clearSession() {
     set(INITIAL_STATE)
   },
+}), {
+  name: 'gym-yjmg:active-session',
+  storage: createJSONStorage(() => localStorage),
+  // Solo se espeja el progreso de la sesión — los campos de timer en vivo
+  // NO se incluyen aquí, ver comentario de cabecera.
+  partialize: (state): SessionState => ({
+    sessionId: state.sessionId,
+    sessionExerciseIds: state.sessionExerciseIds,
+    routineId: state.routineId,
+    routineDayId: state.routineDayId,
+    dayLabel: state.dayLabel,
+    startedAt: state.startedAt,
+    exercises: state.exercises,
+    currentExerciseIndex: state.currentExerciseIndex,
+    sets: state.sets,
+    status: state.status,
+    timerMode: 'rest',
+    timerTotalSeconds: 90,
+    timerRemainingSeconds: 0,
+    timerRunning: false,
+  }),
 }))

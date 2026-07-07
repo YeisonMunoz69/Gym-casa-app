@@ -7,16 +7,11 @@ import { showToast } from '../../../components/ui/Toast'
 import { useAuthStore } from '../../../stores/authStore'
 import { createCustomExercise } from '../../../services/exercises.service'
 import { uploadExerciseImage } from '../../../services/media.service'
+import { MUSCLE_GROUP_OPTIONS } from '../../../utils/muscleGroupLabels'
 import type { ExerciseCatalogRow } from '../../../types/exercise'
 import './CreateExerciseForm.css'
 
-const MUSCLE_GROUPS = [
-  'Pecho', 'Espalda', 'Trapecio', 'Hombros',
-  'Biceps', 'Triceps', 'Antebrazos',
-  'Piernas', 'Gluteos', 'Abdomen', 'Pantorrilla',
-  'Cuello', 'Cardio', 'Cuerpo Completo',
-  'Estiramiento', 'Bonificacion',
-]
+const MUSCLE_GROUPS: readonly string[] = MUSCLE_GROUP_OPTIONS
 
 type CreateExerciseFormProps = {
   isOpen: boolean

@@ -14,24 +14,6 @@ export async function loadExercisesCatalog(): Promise<{
   return { data: data as ExerciseCatalogRow[], error: null }
 }
 
-export async function searchExercises(
-  query: string,
-): Promise<{ data: ExerciseCatalogRow[]; error: string | null }> {
-  let request = supabase
-    .from('exercises_catalog')
-    .select('*')
-
-  if (query.trim()) {
-    request = request.ilike('name', `%${query}%`)
-  }
-
-  const { data, error } = await request
-    .order('name', { ascending: true })
-
-  if (error) return { data: [], error: error.message }
-  return { data: data as ExerciseCatalogRow[], error: null }
-}
-
 type CreateExerciseInput = {
   userId: string
   name: string

@@ -136,6 +136,11 @@
   min-width: 2px;
 }
 
+.recovery-info__hint {
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}
+
 /* ============================================================
    Estilos SVG del body map
    ============================================================ */

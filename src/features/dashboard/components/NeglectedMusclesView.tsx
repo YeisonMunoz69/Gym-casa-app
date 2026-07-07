@@ -114,10 +114,10 @@ export function NeglectedMusclesView() {
         <div className="neglected-view__title-row">
           <h3 className="neglected-view__title">Músculos Olvidados</h3>
           <AIInfoBadge title="¿Cómo funciona este algoritmo?">
-            <p>Detecta músculos que llevan más días <em>sin entrenarse</em> que su umbral estadístico.</p>
-            <p>Los umbrales se calcularon del <strong>percentil P75</strong> de los intervalos de descanso en el dataset <strong>joep89/weightlifting</strong> (721 sesiones reales).</p>
-            <p><strong>Naranja</strong> = descuidado · <strong>Verde</strong> = al día · <strong>Gris</strong> = sin datos suficientes.</p>
-            <p>Solo se muestran los <strong>5-6 grupos musculares</strong> con calibración estadísticamente confiable (≥30 sesiones, umbral ≤45 días).</p>
+            <p>Detecta músculos que llevan más días <em>sin entrenarse</em> que su umbral personal.</p>
+            <p>El umbral se calcula con <strong>tu propio historial</strong>: es el percentil 75 de los días que sueles dejar pasar entre tus propias sesiones de ese músculo (mínimo 4 sesiones registradas para calcularlo).</p>
+            <p>Si aún no tienes suficiente historial de un músculo, se usa una guía general de <strong>7 días</strong> (entrenar cada grupo al menos 1 vez por semana) hasta que tengas más datos propios.</p>
+            <p><strong>Naranja</strong> = descuidado · <strong>Verde</strong> = al día · <strong>Gris</strong> = todavía no registras ningún entrenamiento.</p>
           </AIInfoBadge>
         </div>
 
@@ -163,7 +163,7 @@ export function NeglectedMusclesView() {
       {neglected.length === 0 ? (
         <div className="neglected-view__all-ok">
           <CheckCircle size={20} className="neglected-view__all-ok-icon" />
-          <p>Todos tus músculos calibrados están al día. ¡Sigue así!</p>
+          <p>Todos tus músculos monitoreados están al día. ¡Sigue así!</p>
         </div>
       ) : (
         <div className="neglected-view__list">
@@ -175,9 +175,9 @@ export function NeglectedMusclesView() {
             <div key={m.muscle_group} className="neglected-view__item">
               <span className="neglected-view__item-label">{m.label}</span>
               <span className="neglected-view__item-days">
-                {m.days_since >= 90 ? '+90' : m.days_since}d
+                {m.days_since >= 180 ? '+180' : m.days_since}d
                 <span className="neglected-view__item-threshold">
-                  &nbsp;/ umbral {m.neglect_threshold}d
+                  &nbsp;/ umbral {m.neglect_threshold}d{!m.basedOnPersonalData ? ' (estimado)' : ''}
                 </span>
               </span>
             </div>
