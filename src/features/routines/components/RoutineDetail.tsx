@@ -1,12 +1,21 @@
+/* ============================================================
+   RoutineDetail.tsx — Detalle y edición de días de una rutina
+   FASE 05.5 — GYM-YJMG
+   Responsabilidad: coordinar vista/edición de una rutina y sus días.
+   Límite: 150 líneas — SKILL-CODE §2.4
+   ============================================================ */
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Plus, X, Share2, Pencil } from 'lucide-react'
+import { ArrowLeft, Share2, Pencil, Download } from 'lucide-react'
 import { ConfirmDialog } from '../../../components/ui/ConfirmDialog'
 import { IconButton } from '../../../components/ui/IconButton'
-import { Button } from '../../../components/ui/Button'
 import { showToast } from '../../../components/ui/Toast'
-import { addRoutineDay, removeRoutineDay, renameRoutine, addRoutineDayWithCopy } from '../../../services/routines.service'
+import { removeRoutineDay, addRoutineDay } from '../../../services/routines.service'
 import { DayExerciseList } from './DayExerciseList'
 import { ShareRoutineModal } from './ShareRoutineModal'
+import { ExportRoutineModal } from './ExportRoutineModal'
+import { RenameRoutineDialog } from './RenameRoutineDialog'
+import { AddDayCopyDialog } from './AddDayCopyDialog'
+import { RoutineDaysBar } from './RoutineDaysBar'
 import { HelpVideoButton } from '../../../components/ui/HelpVideo/HelpVideoButton'
 import { WEEKDAY_LABELS } from '../../../types/routine'
 import type { RoutineWithDays, RoutineDayRow } from '../../../types/routine'
@@ -22,75 +31,28 @@ export function RoutineDetail({ routine, onBack, onRoutineChanged }: RoutineDeta
   const [selectedDay, setSelectedDay] = useState<RoutineDayRow | null>(null)
   const [pendingDeleteDay, setPendingDeleteDay] = useState<{ id: string; weekday: number } | null>(null)
   const [showShareModal, setShowShareModal] = useState(false)
+  const [showExportModal, setShowExportModal] = useState(false)
   const [renameOpen, setRenameOpen] = useState(false)
-  const [renameDraft, setRenameDraft] = useState('')
-  const [renaming, setRenaming] = useState(false)
   const [pendingAddDay, setPendingAddDay] = useState<number | null>(null)
-  
+
   const sortedDays = [...routine.routine_days].sort((a, b) => a.weekday - b.weekday)
   const assignedWeekdays = routine.routine_days.map((d) => d.weekday)
-  const availableWeekdays = [0, 1, 2, 3, 4, 5, 6].filter(
-    (w) => !assignedWeekdays.includes(w),
-  )
+  const availableWeekdays = [0, 1, 2, 3, 4, 5, 6].filter((w) => !assignedWeekdays.includes(w))
 
-  /** Auto-seleccionar el primer dia si no hay nada seleccionado */
   useEffect(() => {
     if (!selectedDay && sortedDays.length > 0) {
       setSelectedDay(sortedDays[0])
     }
   }, [routine.routine_days.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function handleAddDay(weekday: number) {
-    const { error } = await addRoutineDay(routine.id, weekday)
-    if (error) {
-      showToast('Error al agregar dia', 'error')
-    } else {
-      showToast(`${WEEKDAY_LABELS[weekday]} agregado`, 'success')
-      onRoutineChanged()
-    }
-  }
-
   async function handleRemoveDay(dayId: string, weekday: number) {
     if (selectedDay?.id === dayId) setSelectedDay(null)
     const { error } = await removeRoutineDay(dayId)
     if (error) {
-      showToast('Error al eliminar dia', 'error')
+      showToast('Error al eliminar día', 'error')
     } else {
       showToast(`${WEEKDAY_LABELS[weekday]} eliminado`, 'success')
       onRoutineChanged()
-    }
-  }
-
-  async function handleConfirmRename() {
-    const nextName = renameDraft.trim()
-    if (!nextName || nextName === routine.name) { setRenameOpen(false); return }
-    setRenaming(true)
-    const { error } = await renameRoutine(routine.id, nextName)
-    setRenaming(false)
-    if (error) {
-      showToast('Error al renombrar', 'error')
-    } else {
-      showToast('Rutina renombrada', 'success')
-      setRenameOpen(false)
-      onRoutineChanged()
-    }
-  }
-
-  async function handleConfirmAddDay(copy: boolean) {
-    if (pendingAddDay === null) return
-    const weekday = pendingAddDay
-    setPendingAddDay(null)
-    
-    if (copy && selectedDay) {
-      const { error } = await addRoutineDayWithCopy(routine.id, weekday, selectedDay.id)
-      if (error) {
-        showToast('Error al copiar día', 'error')
-      } else {
-        showToast(`${WEEKDAY_LABELS[weekday]} agregado con copia`, 'success')
-        onRoutineChanged()
-      }
-    } else {
-      handleAddDay(weekday)
     }
   }
 
@@ -104,9 +66,16 @@ export function RoutineDetail({ routine, onBack, onRoutineChanged }: RoutineDeta
           ariaLabel="Renombrar rutina"
           size="md"
           variant="ghost"
-          onClick={() => { setRenameDraft(routine.name); setRenameOpen(true) }}
+          onClick={() => setRenameOpen(true)}
         />
         <HelpVideoButton sectionKey="routine_detail" title="Tutorial: Editar Rutina" />
+        <IconButton
+          icon={Download}
+          ariaLabel="Descargar rutina (.md)"
+          size="md"
+          variant="ghost"
+          onClick={() => setShowExportModal(true)}
+        />
         <IconButton
           icon={Share2}
           ariaLabel="Compartir rutina"
@@ -116,53 +85,23 @@ export function RoutineDetail({ routine, onBack, onRoutineChanged }: RoutineDeta
         />
       </div>
 
-      <div className="routine-detail__days-section">
-        <h3 className="routine-detail__subtitle">Dias asignados</h3>
-        <div className="routine-detail__day-chips">
-          {sortedDays.map((day) => (
-            <button
-              key={day.id}
-              className={`day-chip ${selectedDay?.id === day.id ? 'day-chip--selected' : ''}`}
-              onClick={() => setSelectedDay(day)}
-            >
-              <span>{WEEKDAY_LABELS[day.weekday]}</span>
-              <span
-                className="day-chip__remove"
-                role="button"
-                tabIndex={0}
-                aria-label={`Eliminar ${WEEKDAY_LABELS[day.weekday]}`}
-                onClick={(e) => { e.stopPropagation(); setPendingDeleteDay({ id: day.id, weekday: day.weekday }) }}
-                onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setPendingDeleteDay({ id: day.id, weekday: day.weekday }) } }}
-              >
-                <X size={12} />
-              </span>
-            </button>
-          ))}
-
-          {availableWeekdays.length > 0 && (
-            <div className="routine-detail__add-day">
-              <select
-                className="routine-detail__day-select"
-                value=""
-                onChange={(e) => {
-                  const weekday = Number(e.target.value)
-                  if (selectedDay) {
-                    setPendingAddDay(weekday)
-                  } else {
-                    handleAddDay(weekday)
-                  }
-                }}
-              >
-                <option value="" disabled>Agregar dia...</option>
-                {availableWeekdays.map((w) => (
-                  <option key={w} value={w}>{WEEKDAY_LABELS[w]}</option>
-                ))}
-              </select>
-              <Plus size={14} className="routine-detail__add-icon" />
-            </div>
-          )}
-        </div>
-      </div>
+      <RoutineDaysBar
+        sortedDays={sortedDays}
+        selectedDay={selectedDay}
+        availableWeekdays={availableWeekdays}
+        onSelectDay={setSelectedDay}
+        onRequestDeleteDay={(id, weekday) => setPendingDeleteDay({ id, weekday })}
+        onSelectAddDay={(weekday) => {
+          if (selectedDay) {
+            setPendingAddDay(weekday)
+          } else {
+            void addRoutineDay(routine.id, weekday).then(({ error }) => {
+              if (error) showToast('Error al agregar día', 'error')
+              else { showToast(`${WEEKDAY_LABELS[weekday]} agregado`, 'success'); onRoutineChanged() }
+            })
+          }
+        }}
+      />
 
       {selectedDay && (
         <DayExerciseList
@@ -174,7 +113,7 @@ export function RoutineDetail({ routine, onBack, onRoutineChanged }: RoutineDeta
       )}
 
       {!selectedDay && sortedDays.length === 0 && (
-        <p className="routine-detail__hint">Agrega un dia para empezar</p>
+        <p className="routine-detail__hint">Agrega un día para empezar</p>
       )}
 
       <ConfirmDialog
@@ -186,7 +125,7 @@ export function RoutineDetail({ routine, onBack, onRoutineChanged }: RoutineDeta
         variant="danger"
         onConfirm={() => {
           if (pendingDeleteDay) {
-            handleRemoveDay(pendingDeleteDay.id, pendingDeleteDay.weekday)
+            void handleRemoveDay(pendingDeleteDay.id, pendingDeleteDay.weekday)
             setPendingDeleteDay(null)
           }
         }}
@@ -201,77 +140,30 @@ export function RoutineDetail({ routine, onBack, onRoutineChanged }: RoutineDeta
         />
       )}
 
-      {renameOpen && (
-        <div className="clone-dialog-overlay" role="dialog" aria-modal="true" aria-label="Renombrar rutina">
-          <div className="clone-dialog">
-            <h2 className="clone-dialog__title">Renombrar rutina</h2>
-            <p className="clone-dialog__desc">Escribe el nuevo nombre para esta rutina.</p>
-            <input
-              className="clone-dialog__input"
-              type="text"
-              value={renameDraft}
-              onChange={(e) => setRenameDraft(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') { void handleConfirmRename() } }}
-              placeholder={routine.name}
-              autoFocus
-              disabled={renaming}
-            />
-            <div className="clone-dialog__actions">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setRenameOpen(false)}
-                disabled={renaming}
-              >
-                Cancelar
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                loading={renaming}
-                onClick={() => { void handleConfirmRename() }}
-                disabled={renaming || !renameDraft.trim()}
-              >
-                Guardar
-              </Button>
-            </div>
-          </div>
-        </div>
+      {showExportModal && (
+        <ExportRoutineModal
+          routineId={routine.id}
+          routineName={routine.name}
+          onClose={() => setShowExportModal(false)}
+        />
       )}
 
-      {pendingAddDay !== null && selectedDay && (
-        <div className="clone-dialog-overlay" role="dialog" aria-modal="true" aria-label="Copiar día">
-          <div className="clone-dialog">
-            <h2 className="clone-dialog__title">Agregar día</h2>
-            <p className="clone-dialog__desc">
-              ¿Quieres copiar los ejercicios del <strong>{WEEKDAY_LABELS[selectedDay.weekday]}</strong> a tu nuevo día <strong>{WEEKDAY_LABELS[pendingAddDay]}</strong>?
-            </p>
-            <div className="clone-dialog__actions" style={{ flexDirection: 'column', gap: 'var(--space-2)', marginTop: 'var(--space-4)' }}>
-              <Button
-                variant="primary"
-                fullWidth
-                onClick={() => handleConfirmAddDay(true)}
-              >
-                Sí, copiar ejercicios
-              </Button>
-              <Button
-                variant="secondary"
-                fullWidth
-                onClick={() => handleConfirmAddDay(false)}
-              >
-                No, agregar vacío
-              </Button>
-              <Button
-                variant="ghost"
-                fullWidth
-                onClick={() => setPendingAddDay(null)}
-              >
-                Cancelar
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <RenameRoutineDialog
+        isOpen={renameOpen}
+        routineId={routine.id}
+        currentName={routine.name}
+        onClose={() => setRenameOpen(false)}
+        onRenamed={onRoutineChanged}
+      />
+
+      <AddDayCopyDialog
+        pendingAddDay={pendingAddDay}
+        selectedDayId={selectedDay?.id ?? null}
+        selectedDayWeekday={selectedDay?.weekday ?? null}
+        routineId={routine.id}
+        onClose={() => setPendingAddDay(null)}
+        onSuccess={onRoutineChanged}
+      />
     </div>
   )
 }
